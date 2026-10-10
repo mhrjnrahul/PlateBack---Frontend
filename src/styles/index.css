@@ -1,8 +1,139 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Design tokens (colours, type scale, radii) are added in step 2. */
+/*
+ * Design tokens (design document, section 3.2).
+ *
+ * Contrast ratios are measured against white unless noted. Text needs 4.5:1
+ * (WCAG 2.1 AA); borders of form fields and focus rings need 3:1.
+ *
+ * The variables below use the names shadcn/ui components expect
+ * (--primary, --border, --ring...), so our own components and shadcn's
+ * share one set of values.
+ */
+:root {
+  /* Surfaces */
+  --background: #ffffff;
+  --foreground: #23272e; /* ink, 14.99:1 */
+  --card: #ffffff;
+  --card-foreground: #23272e;
+  --popover: #ffffff;
+  --popover-foreground: #23272e;
+  --surface: #f8f9fa; /* page sections, muted panels */
+
+  /* Brand */
+  --primary: #1f6b45; /* buttons, links, key numbers, 6.47:1 */
+  --primary-hover: #18573a; /* 8.53:1 */
+  --primary-foreground: #ffffff; /* 6.47:1 on primary */
+  --primary-tint: #e3f2e9; /* selected states, success backgrounds; primary on it 5.59:1 */
+
+  /* Accent orange: badges and bars only, never text (2.6:1) */
+  --highlight: #e8833a;
+  --highlight-tint: #fcebdc;
+
+  /* Countdowns and "few left": 6.25:1 on white, 5.37:1 on highlight tint */
+  --urgency: #9a4a0e;
+
+  /* Errors and destructive actions: 5.44:1 */
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+
+  /* Neutral roles used by shadcn/ui */
+  --secondary: #f8f9fa;
+  --secondary-foreground: #23272e;
+  --muted: #f8f9fa;
+  --muted-foreground: #6b7280; /* 4.83:1 on white, 4.59:1 on surface */
+  --accent: #f8f9fa; /* hover background of menu items */
+  --accent-foreground: #23272e;
+
+  /* Lines */
+  --border: #e5e7eb; /* decorative card and section borders */
+  --input: #878e99; /* form field borders, 3.30:1 */
+  --ring: #1f6b45; /* focus ring, 6.47:1 */
+}
+
+@theme inline {
+  /* Colours: available as bg-*, text-*, border-*... */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-tint: var(--primary-tint);
+  --color-highlight: var(--highlight);
+  --color-highlight-tint: var(--highlight-tint);
+  --color-urgency: var(--urgency);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
 
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Type scale 14 / 16 / 20 / 24 / 32 / 44 px:
+   * text-sm, text-base, text-xl, text-2xl, text-3xl, text-4xl.
+   * Only 3xl and 4xl differ from Tailwind's defaults (30 and 36 px).
+   */
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: 1.15;
+
+  /* Radii: 8 px for buttons and inputs (rounded-md), 12 px for cards (rounded-xl) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+
+  /*
+   * Breakpoints: Tailwind's defaults already match the design (md 768,
+   * lg 1024, xl 1280). Styles are mobile first and are built for 360 px
+   * and up, so no extra breakpoint is needed for 360.
+   */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-base/normal text-foreground antialiased;
+  }
+
+  /* Visible focus for keyboard users on every interactive element */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Respect the system setting to reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
