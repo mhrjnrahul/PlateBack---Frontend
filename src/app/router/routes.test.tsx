@@ -19,11 +19,23 @@ describe("routes", () => {
     ["/browse", "Browse listings"],
     ["/listings/abc", "Listing detail"],
     ["/me/reservations", "My reservations"],
+    ["/me/notifications", "Notifications"],
     ["/org/1", "Business dashboard"],
+    ["/org/1/listings/new", "New listing"],
+    ["/admin/organizations", "Organizations"],
     ["/login", "Log in"],
+    ["/register", "Create an account"],
     ["/does-not-exist", "Page not found"],
-  ])("%s shows its page heading", async (path, heading) => {
+  ])("%s shows its heading and sets the tab title", async (path, heading) => {
     renderAt(path);
     expect(await screen.findByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+    expect(document.title).toBe(`${heading} | PlateBack`);
+  });
+
+  it("has exactly one main landmark and one h1 per page", async () => {
+    renderAt("/browse");
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.getAllByRole("main")).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
 });

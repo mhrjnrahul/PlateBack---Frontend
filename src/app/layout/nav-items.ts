@@ -1,3 +1,11 @@
+import {
+  Bell,
+  CalendarCheck,
+  LayoutDashboard,
+  PlusCircle,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
 import { getNavRole, type SessionUser } from "@/features/auth/session/session-context";
 
 /** A link in the header, account menu or footer. */
@@ -70,4 +78,29 @@ export function getFooterNavItems(user: SessionUser | null): NavItem[] {
     items.push({ label: "List your surplus", to: "/register" }, { label: "Log in", to: "/login" });
   }
   return items;
+}
+
+/** A tab in the mobile bottom tab bar. */
+export type TabItem = NavItem & { icon: LucideIcon };
+
+/** Mobile tab bar per role; visitors and admins have no tab bar. */
+export function getTabItems(user: SessionUser | null): TabItem[] {
+  switch (getNavRole(user)) {
+    case "customer":
+      return [
+        { label: "Browse", to: "/browse", icon: Search },
+        { label: "Reservations", to: "/me/reservations", icon: CalendarCheck },
+        { label: "Notifications", to: "/me/notifications", icon: Bell },
+      ];
+    case "business": {
+      const orgId = user?.organization?.id ?? "";
+      return [
+        { label: "Dashboard", to: `/org/${orgId}`, icon: LayoutDashboard },
+        { label: "New listing", to: `/org/${orgId}/listings/new`, icon: PlusCircle },
+        { label: "Browse", to: "/browse", icon: Search },
+      ];
+    }
+    default:
+      return [];
+  }
 }

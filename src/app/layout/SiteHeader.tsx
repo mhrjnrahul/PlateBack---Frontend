@@ -4,6 +4,7 @@ import { Button } from "@/shared/ui/button";
 import { Logo } from "@/shared/ui/logo";
 import { AccountMenu } from "./AccountMenu";
 import { MainNav } from "./MainNav";
+import { MobileNav } from "./MobileNav";
 import { getMainNavItems } from "./nav-items";
 import { NotificationsButton } from "./NotificationsButton";
 
@@ -35,6 +36,7 @@ export function SiteHeader() {
               </Button>
             </>
           )}
+          <MobileNav />
         </div>
       </div>
     </header>

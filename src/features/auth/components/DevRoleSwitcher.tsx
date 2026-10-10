@@ -21,7 +21,7 @@ export function DevRoleSwitcher() {
   }
 
   return (
-    <div className="fixed bottom-3 left-16 z-50 flex items-center gap-2 rounded-full border bg-background/95 py-1 pr-1 pl-3 text-xs shadow-md">
+    <div className="fixed bottom-20 left-16 z-50 flex items-center gap-2 rounded-full border bg-background/95 py-1 pr-1 pl-3 text-xs shadow-md md:bottom-3">
       <label htmlFor="dev-role-switcher" className="font-semibold text-muted-foreground">
         Dev: view as
       </label>
