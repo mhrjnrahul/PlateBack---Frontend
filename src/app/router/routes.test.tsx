@@ -1,11 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
+import { SessionProvider } from "@/features/auth/session/SessionProvider";
 import { routes } from "./routes";
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
-  render(<RouterProvider router={router} />);
+  render(
+    <SessionProvider initialUser={null}>
+      <RouterProvider router={router} />
+    </SessionProvider>,
+  );
 }
 
 describe("routes", () => {

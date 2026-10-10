@@ -1,8 +1,11 @@
 import { Link } from "react-router";
+import { useSession } from "@/features/auth/session/session-context";
 import { Logo } from "@/shared/ui/logo";
-import { footerNavItems } from "./nav-items";
+import { getFooterNavItems } from "./nav-items";
 
 export function SiteFooter() {
+  const { user } = useSession();
+
   return (
     <footer className="border-t bg-surface">
       <div className="page-container flex flex-col gap-6 py-10 md:flex-row md:items-start md:justify-between">
@@ -15,7 +18,7 @@ export function SiteFooter() {
 
         <nav aria-label="Footer">
           <ul className="grid grid-cols-2 gap-x-8 gap-y-1 sm:flex sm:gap-6">
-            {footerNavItems.map((item) => (
+            {getFooterNavItems(user).map((item) => (
               <li key={item.label}>
                 <Link
                   to={item.to}
