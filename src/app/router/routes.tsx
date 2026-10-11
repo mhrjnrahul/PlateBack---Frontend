@@ -3,12 +3,13 @@ import { AuthLayout } from "@/app/layout/AuthLayout";
 import { MainLayout } from "@/app/layout/MainLayout";
 import { PageLoader } from "@/app/layout/PageLoader";
 import { NotFoundPage } from "./NotFoundPage";
+import { RequireAuth } from "./RequireAuth";
 import { RouteErrorPage } from "./RouteErrorPage";
 
 /*
- * Route table. Each page is lazy-loaded, so its code is a separate bundle
- * that downloads on first visit. Access rules (who may open which page) are
- * added with login in step 9.
+ * Route table (design doc 3.1). Each page is lazy-loaded, so its code is a
+ * separate bundle that downloads on first visit. Guarded groups follow the
+ * authorization matrix in design doc 4.6.
  */
 export const routes: RouteObject[] = [
   {
@@ -40,39 +41,63 @@ export const routes: RouteObject[] = [
             }),
           },
           {
-            path: "me/reservations",
-            lazy: async () => ({
-              Component: (await import("@/features/reservations/pages/MyReservationsPage"))
-                .MyReservationsPage,
-            }),
+            // Any signed-in user
+            element: <RequireAuth />,
+            children: [
+              {
+                path: "me/reservations",
+                lazy: async () => ({
+                  Component: (await import("@/features/reservations/pages/MyReservationsPage"))
+                    .MyReservationsPage,
+                }),
+              },
+              {
+                path: "me/notifications",
+                lazy: async () => ({
+                  Component: (await import("@/features/notifications/pages/NotificationsPage"))
+                    .NotificationsPage,
+                }),
+              },
+              {
+                path: "org/new",
+                lazy: async () => ({
+                  Component: (await import("@/features/organizations/pages/CreateOrganizationPage"))
+                    .CreateOrganizationPage,
+                }),
+              },
+            ],
           },
           {
-            path: "me/notifications",
-            lazy: async () => ({
-              Component: (await import("@/features/notifications/pages/NotificationsPage"))
-                .NotificationsPage,
-            }),
+            // Members of the organization in the URL
+            element: <RequireAuth rule="orgMember" />,
+            children: [
+              {
+                path: "org/:orgId",
+                lazy: async () => ({
+                  Component: (await import("@/features/organizations/pages/OrgDashboardPage"))
+                    .OrgDashboardPage,
+                }),
+              },
+              {
+                path: "org/:orgId/listings/new",
+                lazy: async () => ({
+                  Component: (await import("@/features/listings/pages/CreateListingPage"))
+                    .CreateListingPage,
+                }),
+              },
+            ],
           },
           {
-            path: "org/:orgId",
-            lazy: async () => ({
-              Component: (await import("@/features/organizations/pages/OrgDashboardPage"))
-                .OrgDashboardPage,
-            }),
-          },
-          {
-            path: "org/:orgId/listings/new",
-            lazy: async () => ({
-              Component: (await import("@/features/listings/pages/CreateListingPage"))
-                .CreateListingPage,
-            }),
-          },
-          {
-            path: "admin/organizations",
-            lazy: async () => ({
-              Component: (await import("@/features/admin/pages/AdminOrganizationsPage"))
-                .AdminOrganizationsPage,
-            }),
+            element: <RequireAuth rule="admin" />,
+            children: [
+              {
+                path: "admin/organizations",
+                lazy: async () => ({
+                  Component: (await import("@/features/admin/pages/AdminOrganizationsPage"))
+                    .AdminOrganizationsPage,
+                }),
+              },
+            ],
           },
           { path: "*", Component: NotFoundPage },
         ],

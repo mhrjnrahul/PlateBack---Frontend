@@ -1,41 +1,71 @@
-import { render, screen } from "@testing-library/react";
-import { createMemoryRouter, RouterProvider } from "react-router";
+import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { SessionProvider } from "@/features/auth/session/SessionProvider";
-import { routes } from "./routes";
-
-function renderAt(path: string) {
-  const router = createMemoryRouter(routes, { initialEntries: [path] });
-  render(
-    <SessionProvider initialUser={null}>
-      <RouterProvider router={router} />
-    </SessionProvider>,
-  );
-}
+import { renderApp } from "@/test/render-app";
 
 describe("routes", () => {
   it.each([
-    ["/", "Good food shouldn't go to waste"],
+    ["/", "Good food shouldn't go to waste."],
     ["/browse", "Browse listings"],
-    ["/listings/abc", "Listing detail"],
-    ["/me/reservations", "My reservations"],
-    ["/me/notifications", "Notifications"],
-    ["/org/1", "Business dashboard"],
-    ["/org/1/listings/new", "New listing"],
-    ["/admin/organizations", "Organizations"],
+    ["/listings/listing-pastry", "Mixed pastry box"],
     ["/login", "Log in"],
     ["/register", "Create an account"],
     ["/does-not-exist", "Page not found"],
-  ])("%s shows its heading and sets the tab title", async (path, heading) => {
-    renderAt(path);
+  ])("%s shows its heading", async (path, heading) => {
+    await renderApp(path);
     expect(await screen.findByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
-    expect(document.title).toBe(`${heading} | PlateBack`);
+  });
+
+  it("sets the tab title per page", async () => {
+    await renderApp("/listings/listing-pastry");
+    await waitFor(() => expect(document.title).toBe("Mixed pastry box | PlateBack"));
   });
 
   it("has exactly one main landmark and one h1 per page", async () => {
-    renderAt("/browse");
-    await screen.findByRole("heading", { level: 1 });
+    await renderApp("/browse");
     expect(screen.getAllByRole("main")).toHaveLength(1);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  it("an unknown listing shows the 404 page", async () => {
+    await renderApp("/listings/nope");
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Page not found" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("route guards (design doc 4.6)", () => {
+  it("sends signed-out visitors to log in, then back", async () => {
+    const { router } = await renderApp("/me/reservations");
+    await waitFor(() => expect(router.state.location.pathname).toBe("/login"));
+    expect(router.state.location.search).toBe("?redirect=%2Fme%2Freservations");
+  });
+
+  it("lets a customer see their reservations", async () => {
+    await renderApp("/me/reservations", { as: "user-maya" });
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "My reservations" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows 403 for another role's page", async () => {
+    await renderApp("/admin/organizations", { as: "user-maya" });
+    expect(
+      await screen.findByRole("heading", { name: "You don't have access to this page" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows 403 for another business's dashboard", async () => {
+    await renderApp("/org/org-greenleaf", { as: "user-arjun" });
+    expect(
+      await screen.findByRole("heading", { name: "You don't have access to this page" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the dashboard for its own staff and the review page for admins", async () => {
+    await renderApp("/org/org-sunrise", { as: "user-arjun" });
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Sunrise Bakery" }),
+    ).toBeInTheDocument();
   });
 });

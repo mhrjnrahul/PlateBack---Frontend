@@ -4,9 +4,11 @@ import {
   LayoutDashboard,
   PlusCircle,
   Search,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
-import { getNavRole, type SessionUser } from "@/features/auth/session/session-context";
+import { getNavRole, primaryOrganizationId } from "@/features/auth/session/auth-context";
+import type { CurrentUser } from "@/shared/types/api";
 
 /** A link in the header, account menu or footer. */
 export type NavItem = {
@@ -14,8 +16,12 @@ export type NavItem = {
   to: string;
 };
 
+/** A tab in the mobile bottom tab bar. */
+export type TabItem = NavItem & { icon: LucideIcon };
+
 /** Main header links for the current user's role. */
-export function getMainNavItems(user: SessionUser | null): NavItem[] {
+export function getMainNavItems(user: CurrentUser | null): NavItem[] {
+  const orgId = primaryOrganizationId(user);
   switch (getNavRole(user)) {
     case "visitor":
       return [
@@ -28,14 +34,12 @@ export function getMainNavItems(user: SessionUser | null): NavItem[] {
         { label: "Browse", to: "/browse" },
         { label: "My reservations", to: "/me/reservations" },
       ];
-    case "business": {
-      const orgId = user?.organization?.id ?? "";
+    case "business":
       return [
         { label: "Dashboard", to: `/org/${orgId}` },
         { label: "New listing", to: `/org/${orgId}/listings/new` },
         { label: "Browse", to: "/browse" },
       ];
-    }
     case "admin":
       return [
         { label: "Organizations", to: "/admin/organizations" },
@@ -45,46 +49,43 @@ export function getMainNavItems(user: SessionUser | null): NavItem[] {
 }
 
 /** Links in the account menu (signed-in users only). */
-export function getAccountMenuItems(user: SessionUser): NavItem[] {
+export function getAccountMenuItems(user: CurrentUser): NavItem[] {
+  const orgId = primaryOrganizationId(user);
+  const common = [
+    { label: "My reservations", to: "/me/reservations" },
+    { label: "Notifications", to: "/me/notifications" },
+  ];
   switch (getNavRole(user)) {
-    case "business": {
-      const orgId = user.organization?.id ?? "";
-      return [
-        { label: "Business dashboard", to: `/org/${orgId}` },
-        { label: "My reservations", to: "/me/reservations" },
-        { label: "Notifications", to: "/me/notifications" },
-      ];
-    }
+    case "business":
+      return [{ label: "Business dashboard", to: `/org/${orgId}` }, ...common];
     case "admin":
       return [
         { label: "Organizations", to: "/admin/organizations" },
         { label: "Notifications", to: "/me/notifications" },
       ];
     default:
-      return [
-        { label: "My reservations", to: "/me/reservations" },
-        { label: "Notifications", to: "/me/notifications" },
-      ];
+      return [...common, { label: "List your business", to: "/org/new" }];
   }
 }
 
 /** Footer links; sign-up and log-in links are only for visitors. */
-export function getFooterNavItems(user: SessionUser | null): NavItem[] {
+export function getFooterNavItems(user: CurrentUser | null): NavItem[] {
   const items: NavItem[] = [
     { label: "Browse listings", to: "/browse" },
     { label: "How it works", to: "/#how-it-works" },
   ];
   if (!user) {
-    items.push({ label: "List your surplus", to: "/register" }, { label: "Log in", to: "/login" });
+    items.push(
+      { label: "List your surplus", to: "/register?next=business" },
+      { label: "Log in", to: "/login" },
+    );
   }
   return items;
 }
 
-/** A tab in the mobile bottom tab bar. */
-export type TabItem = NavItem & { icon: LucideIcon };
-
-/** Mobile tab bar per role; visitors and admins have no tab bar. */
-export function getTabItems(user: SessionUser | null): TabItem[] {
+/** Mobile tab bar per role; visitors get none. */
+export function getTabItems(user: CurrentUser | null): TabItem[] {
+  const orgId = primaryOrganizationId(user);
   switch (getNavRole(user)) {
     case "customer":
       return [
@@ -92,14 +93,18 @@ export function getTabItems(user: SessionUser | null): TabItem[] {
         { label: "Reservations", to: "/me/reservations", icon: CalendarCheck },
         { label: "Notifications", to: "/me/notifications", icon: Bell },
       ];
-    case "business": {
-      const orgId = user?.organization?.id ?? "";
+    case "business":
       return [
         { label: "Dashboard", to: `/org/${orgId}`, icon: LayoutDashboard },
         { label: "New listing", to: `/org/${orgId}/listings/new`, icon: PlusCircle },
         { label: "Browse", to: "/browse", icon: Search },
       ];
-    }
+    case "admin":
+      return [
+        { label: "Review", to: "/admin/organizations", icon: ShieldCheck },
+        { label: "Browse", to: "/browse", icon: Search },
+        { label: "Notifications", to: "/me/notifications", icon: Bell },
+      ];
     default:
       return [];
   }

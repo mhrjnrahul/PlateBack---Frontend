@@ -1,7 +1,7 @@
 import { ChevronDown, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import type { SessionUser } from "@/features/auth/session/session-context";
-import { useSession } from "@/features/auth/session/session-context";
+import { useAuth } from "@/features/auth/session/auth-context";
+import type { CurrentUser } from "@/shared/types/api";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -24,12 +24,12 @@ function initials(name: string) {
 }
 
 /** Avatar button that opens the account menu. */
-export function AccountMenu({ user }: { user: SessionUser }) {
-  const { signOut } = useSession();
+export function AccountMenu({ user }: { user: CurrentUser }) {
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
-  function handleLogOut() {
-    signOut();
+  async function handleLogOut() {
+    await logout();
     navigate("/");
     toast("You are logged out.");
   }
@@ -40,13 +40,13 @@ export function AccountMenu({ user }: { user: SessionUser }) {
         <Button
           variant="ghost"
           className="gap-1 px-1.5"
-          aria-label={`Account menu for ${user.name}`}
+          aria-label={`Account menu for ${user.displayName}`}
         >
           <span
             aria-hidden="true"
             className="flex size-8 items-center justify-center rounded-full bg-primary-tint text-sm font-semibold text-primary"
           >
-            {initials(user.name)}
+            {initials(user.displayName)}
           </span>
           <ChevronDown aria-hidden="true" className="text-muted-foreground" />
         </Button>
@@ -54,10 +54,10 @@ export function AccountMenu({ user }: { user: SessionUser }) {
 
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="font-normal">
-          <p className="font-semibold">{user.name}</p>
+          <p className="font-semibold">{user.displayName}</p>
           <p className="truncate text-muted-foreground">{user.email}</p>
-          {user.organization && (
-            <p className="mt-1 text-muted-foreground">{user.organization.name}</p>
+          {user.memberships[0] && (
+            <p className="mt-1 text-muted-foreground">{user.memberships[0].organizationName}</p>
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -67,7 +67,7 @@ export function AccountMenu({ user }: { user: SessionUser }) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleLogOut}>
+        <DropdownMenuItem onSelect={() => void handleLogOut()}>
           <LogOut aria-hidden="true" />
           Log out
         </DropdownMenuItem>

@@ -15,6 +15,7 @@ export function MainNav({ items }: { items: NavItem[] }) {
           <li key={item.to} className="flex h-full items-center">
             <NavLink
               to={item.to}
+              end
               className={({ isActive }) =>
                 cn(
                   "relative flex h-10 items-center rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",

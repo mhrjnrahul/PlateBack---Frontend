@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useSession } from "@/features/auth/session/session-context";
+import { useAuth } from "@/features/auth/session/auth-context";
 import { Button } from "@/shared/ui/button";
 import { Logo } from "@/shared/ui/logo";
 import { AccountMenu } from "./AccountMenu";
@@ -9,7 +9,7 @@ import { getMainNavItems } from "./nav-items";
 import { NotificationsButton } from "./NotificationsButton";
 
 export function SiteHeader() {
-  const { user } = useSession();
+  const { user, status } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -21,7 +21,10 @@ export function SiteHeader() {
         <MainNav items={getMainNavItems(user)} />
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          {user ? (
+          {status === "loading" ? (
+            // Keeps the header from flashing "Log in" while the session is restored
+            <span className="h-10 w-24" aria-hidden="true" />
+          ) : user ? (
             <>
               <NotificationsButton />
               <AccountMenu user={user} />

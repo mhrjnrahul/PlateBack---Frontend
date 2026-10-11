@@ -1,7 +1,7 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink } from "react-router";
-import { useSession } from "@/features/auth/session/session-context";
+import { useAuth } from "@/features/auth/session/auth-context";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/ui/sheet";
@@ -13,7 +13,7 @@ import { getMainNavItems } from "./nav-items";
  * returns to the menu button. Choosing a link closes the drawer.
  */
 export function MobileNav() {
-  const { user } = useSession();
+  const { user } = useAuth();
   const items = getMainNavItems(user);
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -35,6 +35,7 @@ export function MobileNav() {
               <li key={item.to}>
                 <NavLink
                   to={item.to}
+                  end
                   onClick={close}
                   className={({ isActive }) =>
                     cn(

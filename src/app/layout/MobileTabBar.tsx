@@ -1,11 +1,11 @@
 import { NavLink } from "react-router";
-import { useSession } from "@/features/auth/session/session-context";
+import { useAuth } from "@/features/auth/session/auth-context";
 import { cn } from "@/shared/lib/utils";
 import { getTabItems } from "./nav-items";
 
 /** Bottom tab bar on screens below md (wireframes M1-M6). */
 export function MobileTabBar() {
-  const { user } = useSession();
+  const { user } = useAuth();
   const tabs = getTabItems(user);
   if (tabs.length === 0) return null;
 

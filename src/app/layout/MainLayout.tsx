@@ -1,5 +1,5 @@
 import { Outlet, ScrollRestoration } from "react-router";
-import { useSession } from "@/features/auth/session/session-context";
+import { useAuth } from "@/features/auth/session/auth-context";
 import { cn } from "@/shared/lib/utils";
 import { MobileTabBar } from "./MobileTabBar";
 import { getTabItems } from "./nav-items";
@@ -9,7 +9,7 @@ import { SkipLink } from "./SkipLink";
 
 /** Layout for every page except login and register. */
 export function MainLayout() {
-  const { user } = useSession();
+  const { user } = useAuth();
   // Leave room for the fixed tab bar on mobile so it never covers the footer.
   const hasTabBar = getTabItems(user).length > 0;
 
