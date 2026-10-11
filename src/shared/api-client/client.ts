@@ -22,13 +22,29 @@ export function setAccessTokenProvider(provider: () => string | null) {
   getAccessToken = provider;
 }
 
+/**
+ * Called once when a request fails with TOKEN_EXPIRED; should get a new
+ * access token (POST /auth/refresh) and return true if it did. Set by auth.
+ */
+let refreshAccessToken: (() => Promise<boolean>) | null = null;
+
+export function setTokenRefresher(refresher: (() => Promise<boolean>) | null) {
+  refreshAccessToken = refresher;
+}
+
+/**
+ * Absolute URL for an API path. A relative base ("/api/v1") is resolved
+ * against the page's origin; browsers do that anyway, but Node's fetch (used
+ * in tests) needs an absolute URL.
+ */
 function buildUrl(path: string, query?: Record<string, QueryValue>) {
-  const params = new URLSearchParams();
+  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
   for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+    if (value !== null && value !== undefined && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
   }
-  const search = params.toString();
-  return `${API_BASE_URL}${path}${search ? `?${search}` : ""}`;
+  return url.toString();
 }
 
 async function toApiError(response: Response): Promise<ApiError> {
@@ -41,7 +57,12 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, "UNKNOWN_ERROR", response.statusText || "Request failed");
 }
 
-async function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+  isRetry = false,
+): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   const token = getAccessToken();
@@ -63,7 +84,19 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     throw new ApiError(0, "NETWORK_ERROR", "Could not reach the server. Check your connection.");
   }
 
-  if (!response.ok) throw await toApiError(response);
+  if (!response.ok) {
+    const error = await toApiError(response);
+    // Access tokens live 15 minutes: refresh once and repeat the request.
+    if (
+      error.code === "TOKEN_EXPIRED" &&
+      !isRetry &&
+      refreshAccessToken &&
+      (await refreshAccessToken())
+    ) {
+      return request<T>(method, path, options, true);
+    }
+    throw error;
+  }
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }

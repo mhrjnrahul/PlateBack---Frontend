@@ -92,6 +92,21 @@ export type AuthResponse = {
 
 // ---------- Organizations ----------
 
+/** Body of POST /organizations (the caller becomes Owner; starts Pending). */
+export type CreateOrganizationRequest = {
+  name: string;
+  type: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  phone?: string;
+};
+
+/** Body of POST /admin/organizations/{id}/reject and /suspend. */
+export type ReviewDecisionRequest = {
+  reason: string;
+};
+
 export type OrganizationStatus = "Pending" | "Verified" | "Rejected" | "Suspended";
 
 /** Short form embedded in listings. */
@@ -232,8 +247,17 @@ export type Reservation = {
 export type ReservationWithListing = Reservation & {
   listing: Pick<
     ListingDetail,
-    "title" | "price" | "pickupStart" | "pickupEnd" | "address" | "imageUrl"
-  > & { organizationName: string };
+    | "title"
+    | "category"
+    | "price"
+    | "originalPrice"
+    | "pickupStart"
+    | "pickupEnd"
+    | "address"
+    | "latitude"
+    | "longitude"
+    | "imageUrl"
+  > & { organizationName: string; organizationId: string };
 };
 
 /** Counter queue item for staff (GET /organizations/{orgId}/reservations). */
@@ -241,6 +265,9 @@ export type OrganizationReservation = Reservation & {
   customerName: string;
   listingTitle: string;
 };
+
+/** Filter of GET /reservations/mine: live reservations or past ones. */
+export type ReservationScope = "active" | "history";
 
 export type CreateReservationRequest = {
   quantity: number;

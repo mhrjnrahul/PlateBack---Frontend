@@ -18,9 +18,11 @@ afterEach(() => {
   setAccessTokenProvider(() => null);
 });
 
+/** The last request, with the URL reduced to path + query for readable assertions. */
 function lastCall() {
-  const [url, init] = fetchMock.mock.calls.at(-1)!;
-  return { url: String(url), init: init! };
+  const [input, init] = fetchMock.mock.calls.at(-1)!;
+  const url = new URL(String(input));
+  return { url: url.pathname + url.search, init: init! };
 }
 
 describe("api client", () => {
@@ -121,5 +123,27 @@ describe("api client", () => {
   it("passes cancellations through unchanged", async () => {
     fetchMock.mockRejectedValue(new DOMException("Aborted", "AbortError"));
     await expect(api.get("/listings")).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("expired access tokens", () => {
+  it("refreshes once and repeats the request", async () => {
+    const { setTokenRefresher } = await import("./client");
+    const expired = {
+      type: "about:blank",
+      title: "Token expired",
+      status: 401,
+      code: "TOKEN_EXPIRED",
+    };
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(expired, 401))
+      .mockResolvedValueOnce(jsonResponse({ id: "me" }));
+    const refresher = vi.fn().mockResolvedValue(true);
+    setTokenRefresher(refresher);
+
+    await expect(api.get("/users/me")).resolves.toEqual({ id: "me" });
+    expect(refresher).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    setTokenRefresher(null);
   });
 });

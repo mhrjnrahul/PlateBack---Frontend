@@ -30,6 +30,18 @@ export default defineConfig({
               test: /node_modules[\\/](radix-ui|@radix-ui|@floating-ui)[\\/]/,
               priority: 20,
             },
+            // The mock API is loaded on demand (src/main.tsx), so keep it out of
+            // the shared chunk that every page downloads.
+            {
+              name: "mocks",
+              test: /node_modules[\\/](msw|@msw|@mswjs|@inquirer|cookie|headers-polyfill|is-node-process|outvariant|rettime|tough-cookie|tldts|tldts-core|until-async|@open-draft|strict-event-emitter)[\\/]/,
+              priority: 25,
+            },
+            {
+              name: "forms",
+              test: /node_modules[\\/](zod|react-hook-form|@hookform)[\\/]/,
+              priority: 20,
+            },
             { name: "vendor", test: /node_modules[\\/]/, priority: 10 },
           ],
         },
