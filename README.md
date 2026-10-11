@@ -6,6 +6,7 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 
 ## Contents
 
+- [Week 2 brief checklist](#week-2-brief-checklist)
 - [Run it locally](#run-it-locally)
 - [What you can do](#what-you-can-do)
 - [Tech stack](#tech-stack)
@@ -19,6 +20,20 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 - [Development process](#development-process)
 - [Known limitations](#known-limitations)
 
+## Week 2 brief checklist
+
+| The brief asks for                                               | Where it is                                                                                                                                                            |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A functional frontend with a framework                           | React 19 + TypeScript, built with Vite ([Tech stack](#tech-stack))                                                                                                     |
+| Interacts with back-end services                                 | Every page talks to the API contract from design document section 6 through one API client; a mock API answers until the real backend is ready ([Mock API](#mock-api)) |
+| At least three interconnected views (landing, dashboard, detail) | 12 pages with role-based navigation, including landing, browse (customer dashboard), business dashboard and listing detail ([What you can do](#what-you-can-do))       |
+| Responsive layout from wireframes                                | Built from the seven wireframes in the Week 1 design document; mobile first from 360 px ([Responsive design](#responsive-design))                                      |
+| Interactive UI components                                        | Search as you type, filters, reserving with live stock, countdowns, pickup-code check, photo upload, dialogs and sheets                                                |
+| Usability tested by simulating user interactions                 | 119 tests, most of them full-app tests that click and type like a user ([Testing](#testing))                                                                           |
+| Modular, documented code following current best practices        | Feature folders, typed API layer, lint, format and type checks ([Project structure](#project-structure), [Design patterns](#design-patterns))                          |
+| Accessibility                                                    | WCAG 2.1 AA target; Lighthouse accessibility 100 and no axe violations ([Accessibility](#accessibility))                                                               |
+| README: process, patterns, libraries, how to run                 | [Development process](#development-process), [Design patterns](#design-patterns), [Tech stack](#tech-stack), [Run it locally](#run-it-locally)                         |
+
 ## Run it locally
 
 Requirements: **Node.js 22.22 or newer** (developed on Node 24; see `.nvmrc`) and npm.
@@ -31,6 +46,8 @@ npm run dev       # start the dev server, then open the URL it prints
 No backend or setup is needed: the mock API starts automatically. To change settings, copy `.env.example` to `.env`.
 
 ### Demo accounts
+
+The seeded businesses are in Kathmandu, Lalitpur and Bhaktapur, so choose one of those areas to see listings.
 
 Every account uses the password **`password123`**. On the login page, open **Try a demo account** and choose **Fill in**.
 
@@ -86,7 +103,7 @@ Main flows, from the design document:
 
 1. **Find and reserve.** Choose an area or use your location, then filter by category, price, pickup time and distance. Open a listing and reserve up to 2 portions to get a pickup code. If someone else took the last portion first, you see a clear "no longer available" message and the stock refreshes.
 2. **Pickup.** My reservations shows each pickup code with a countdown. Cancelling before the window opens is free; after that it counts as a late cancellation (−5 reliability), and the confirmation says so first.
-3. **Business.** Register a business, which starts as Pending until an admin verifies it. Then publish listings (with a live preview), watch stock, and verify customers' codes at the counter.
+3. **Business.** Register a business, which starts as Pending until an admin verifies it. Then publish listings (with an optional photo and a live preview), watch stock, and verify customers' codes at the counter or on the phone-sized pickup page.
 4. **Admin.** Review the queue, verify, reject (a reason is required) or suspend businesses. The owner is notified.
 
 |                                                                |                                                          |
@@ -217,9 +234,9 @@ The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px)
 npm run test:run   # 119 tests in 23 files
 ```
 
-- **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
+- **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing with a photo, browse filter chips, the dashboard chart by keyboard, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
 - **Mock API tests** check the business rules, for example that the last portion can only be reserved once (goal G1).
-- **Unit tests** cover the API client, formatting, browse filter URL handling and form schemas.
+- **Unit tests** cover the API client, money and date formatting, browse filter URL handling and form schemas.
 
 Requests to anything that is not mocked fail the test, and the mock data resets after every test.
 
@@ -232,6 +249,9 @@ Requests to anything that is not mocked fail the test, and the mock data resets 
    - an off-screen label that widened the mobile page
    - two contrast failures
    - accessible names missing spaces
+4. **UI polish pass.** Once every page worked, a second pass made the screens calmer and more consistent: prices in rupees through one `Price` component, shared `PageHeader` and `Select` components, one type scale and two radii, category illustrations instead of empty image boxes, a sticky reserve bar on phones, pickup codes first on My reservations, and a standalone pickup page for the business's phone. It was checked again at 360, 768 and 1280 px with axe and Lighthouse.
+5. **Real data only.** Figures such as "meals rescued" are counted from the demo data rather than padded with made-up totals.
+6. **Listing photos.** Businesses can attach a photo to a new listing. This needed an upload endpoint that the design document did not have yet, so it was added to the mock API and documented below for the Week 3 backend.
 
 ## Known limitations
 
@@ -240,5 +260,6 @@ These are planned for later weeks:
 - **Backend:** data comes from the mock API until Week 4. Live updates use 15-second polling; SignalR comes with the real backend (design decision D12).
 - **Time zones:** times are entered and shown in the browser's time zone. The backend stores UTC and each organization's time zone.
 - **Not built in Week 2 (lower-priority features):** recurring listings (F09), email notifications (F20), editing a listing, team management (F06), admin users, and the audit log screen.
-- **Location:** no map or address lookup (design document 1.7). Locations come from preset areas or the browser's geolocation.
+- **Location:** no embedded map or address lookup (design document 1.7). Locations come from preset areas or the browser's geolocation, which runs only when you press **Use my current location**. Browsers allow it only on `https://` or `localhost` (not on a LAN address such as `http://192.168.x.x`), and the demo listings are all in the Kathmandu valley.
+- **Photos:** the seeded listings use category illustrations. Uploaded photos are kept in browser storage by the mock API, which fits about ten.
 - **Performance:** with the mock API on, the app waits for the mock service worker before its first render. Performance tuning is part of Week 5.
