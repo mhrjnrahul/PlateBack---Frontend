@@ -37,6 +37,7 @@
   /* Errors and destructive actions: 5.44:1 */
   --destructive: #c0392b;
   --destructive-foreground: #ffffff;
+  --destructive-tint: #fdecea; /* error backgrounds; destructive on it 4.76:1 */
 
   /* Neutral roles used by shadcn/ui */
   --secondary: #f8f9fa;
@@ -70,6 +71,7 @@
   --color-urgency: var(--urgency);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-tint: var(--destructive-tint);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
