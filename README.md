@@ -166,7 +166,14 @@ The brand stays green with an orange accent and the ring logo. The rules below k
 
 ### Listing images
 
-The demo listings have no photos, so each shows a flat illustration for its category (croissant, thali, grocery bag, cup or gift) on a warm tint. If a listing has an `imageUrl`, the photo is shown instead; one that fails to load falls back to the illustration.
+The seeded demo listings have no photos, so each shows a flat illustration for its category (croissant, thali, grocery bag, cup or gift) on a warm tint. If a listing has an `imageUrl`, the photo is shown instead; one that fails to load falls back to the illustration.
+
+A business can add an optional photo when creating a listing (JPEG, PNG or WebP, up to 10 MB). The browser scales it down to 1280 px wide as a JPEG, previews it in the form and the customer card, and uploads it only on publish:
+
+1. `POST /uploads/images` (multipart, field `file`) returns `201 { "url": "..." }`, or `400 VALIDATION_ERROR` with a `file` field error.
+2. `POST /organizations/{orgId}/listings` sends that URL as the optional `imageUrl`.
+
+This endpoint is not in the design document yet; the real API needs it (storing the file and returning a public URL). The mock returns a `data:` URL, so the photo is kept with the rest of the demo data in localStorage. That storage holds about 5 MB, enough for roughly ten photos; after that, new changes still work but are not saved across a reload.
 
 ## Mock API
 
@@ -207,7 +214,7 @@ The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px)
 ## Testing
 
 ```bash
-npm run test:run   # 117 tests in 23 files
+npm run test:run   # 119 tests in 23 files
 ```
 
 - **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
