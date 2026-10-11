@@ -164,9 +164,9 @@ The brand stays green with an orange accent and the ring logo. The rules below k
 - **Shared pieces.** `PageHeader` (every page title), `Select` (native select, styled), `Price`, `MoneyInput`, `Skeleton`, `LiveDot`, and a `destructive-outline` button for cancel and reject.
 - **Fixed bars on phones.** The tab bar and the listing page's reserve bar publish their heights as CSS variables (`--tab-bar`, `--bottom-bar`), so the page padding and toasts always clear them.
 
-### Listing photos
+### Listing images
 
-Listings show a photo when there is one, and otherwise a flat illustration for the category (croissant, thali, grocery bag, cup or gift) on a warm tint. A photo that is missing or fails to load falls back silently, so nothing looks broken. The demo listings look for photos in `public/images/listings/`; that folder's [README](public/images/listings/README.md) lists the file names and the format (4:3 JPEG).
+The demo listings have no photos, so each shows a flat illustration for its category (croissant, thali, grocery bag, cup or gift) on a warm tint. If a listing has an `imageUrl`, the photo is shown instead; one that fails to load falls back to the illustration.
 
 ## Mock API
 

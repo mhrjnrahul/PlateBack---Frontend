@@ -6,9 +6,6 @@ import { apiUrl, paginate, readPaging } from "../utils";
 import { handle, notFound } from "./context";
 import { toListingDetail, toListingSummary } from "./serialize";
 
-/** Seed figures for the platform before this demo's data (design wireframe 1). */
-const BASELINE = { mealsRescued: 12474, partnerBusinesses: 80 };
-
 const CATEGORIES: ListingCategory[] = ["Bakery", "Meals", "Groceries", "Beverages", "Other"];
 
 export const listingHandlers = [
@@ -86,7 +83,7 @@ export const listingHandlers = [
     }),
   ),
 
-  // GET /stats/impact (public)
+  // GET /stats/impact (public): counted from the demo data, nothing added
   http.get(
     apiUrl("/stats/impact"),
     handle(() => {
@@ -95,10 +92,8 @@ export const listingHandlers = [
         .filter((r) => r.status === "Collected")
         .reduce((sum, r) => sum + r.quantity, 0);
       const stats: ImpactStats = {
-        mealsRescued: BASELINE.mealsRescued + collected,
-        partnerBusinesses:
-          BASELINE.partnerBusinesses +
-          db.organizations.filter((o) => o.status === "Verified").length,
+        mealsRescued: collected,
+        partnerBusinesses: db.organizations.filter((o) => o.status === "Verified").length,
         activeListings: db.listings.filter(
           (l) => l.status === "Active" && new Date(l.pickupEnd) > now,
         ).length,

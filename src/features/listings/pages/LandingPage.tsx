@@ -40,24 +40,21 @@ function HeroListings() {
   );
 }
 
-/** One line of numbers, shown only once loaded (no dashes or zeros while loading). */
+/** One line of real numbers from the API, shown only once loaded (no dashes or zeros while loading). */
 function ImpactLine() {
   const { data } = useQuery(impactQuery());
   if (!data) return null;
+  const n = (value: number) => (
+    <strong className="font-semibold text-foreground tabular-nums">
+      {numberFormat.format(value)}
+    </strong>
+  );
   return (
     <p className="page-container border-y py-5 text-muted-foreground">
-      <strong className="font-semibold text-foreground tabular-nums">
-        {numberFormat.format(data.mealsRescued)}
-      </strong>{" "}
-      meals rescued so far, from{" "}
-      <strong className="font-semibold text-foreground tabular-nums">
-        {numberFormat.format(data.partnerBusinesses)}
-      </strong>{" "}
-      local businesses.{" "}
-      <strong className="font-semibold text-foreground tabular-nums">
-        {numberFormat.format(data.activeListings)}
-      </strong>{" "}
-      listings are live right now.
+      {n(data.mealsRescued)} {data.mealsRescued === 1 ? "meal" : "meals"} rescued so far, from{" "}
+      {n(data.partnerBusinesses)} local {data.partnerBusinesses === 1 ? "business" : "businesses"}.{" "}
+      {n(data.activeListings)} {data.activeListings === 1 ? "listing is" : "listings are"} live
+      right now.
     </p>
   );
 }

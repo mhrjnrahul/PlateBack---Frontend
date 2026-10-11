@@ -201,11 +201,10 @@ export const organizationHandlers = [
           )
           .reduce((sum, r) => sum + r.quantity, 0);
 
-      // Demo history: a steady pattern per day, plus what was really collected
+      // Only what was really collected on each day
       const mealsRescuedByDay = Array.from({ length: 14 }, (_, i) => {
         const day = new Date(startOfToday.getTime() - (13 - i) * DAY);
-        const pattern = [6, 9, 7, 11, 14, 10, 8, 12, 16, 13, 11, 15, 17, 0][i]!;
-        return { date: day.toISOString().slice(0, 10), count: pattern + collectedOn(day) };
+        return { date: day.toISOString().slice(0, 10), count: collectedOn(day) };
       });
       const stats: OrganizationStats = {
         activeListings: listings.filter((l) => l.status === "Active" && new Date(l.pickupEnd) > now)
@@ -214,8 +213,15 @@ export const organizationHandlers = [
           .filter((r) => r.status === "Reserved")
           .reduce((sum, r) => sum + r.quantity, 0),
         collectedToday: collectedOn(now),
-        mealsRescuedThisMonth:
-          130 + mealsRescuedByDay.slice(-now.getDate()).reduce((sum, d) => sum + d.count, 0),
+        mealsRescuedThisMonth: reservations
+          .filter(
+            (r) =>
+              r.status === "Collected" &&
+              r.collectedAt &&
+              new Date(r.collectedAt).getMonth() === now.getMonth() &&
+              new Date(r.collectedAt).getFullYear() === now.getFullYear(),
+          )
+          .reduce((sum, r) => sum + r.quantity, 0),
         mealsRescuedByDay,
       };
       return HttpResponse.json(stats);

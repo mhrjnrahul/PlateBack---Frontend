@@ -211,8 +211,7 @@ export function createSeedData(now = new Date()): MockDb {
       latitude: o.latitude,
       longitude: o.longitude,
       status,
-      // Photos are optional: a missing file falls back to the category illustration.
-      imageUrl: `/images/listings/${id.replace(/^listing-(old-)?/, "")}.jpg`,
+      imageUrl: null,
       createdAt: t((startInHours - 4) * HOUR),
     };
   }
