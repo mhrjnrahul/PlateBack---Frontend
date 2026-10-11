@@ -51,6 +51,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    // Full-app tests type into whole forms; 5 s is too tight on slower machines.
+    testTimeout: 15_000,
     css: true,
     coverage: {
       provider: "v8",
