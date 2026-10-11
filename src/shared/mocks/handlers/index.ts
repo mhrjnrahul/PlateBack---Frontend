@@ -6,6 +6,7 @@ import { listingHandlers } from "./listings";
 import { notificationHandlers } from "./notifications";
 import { organizationHandlers } from "./organizations";
 import { reservationHandlers } from "./reservations";
+import { uploadHandlers } from "./uploads";
 
 /** Every mock endpoint (design doc section 6.2). */
 export const handlers = [
@@ -17,6 +18,7 @@ export const handlers = [
   ...organizationHandlers,
   ...notificationHandlers,
   ...adminHandlers,
+  ...uploadHandlers,
 
   // Must stay last: any API path without a mock answers 501, so a missing
   // endpoint is obvious instead of silently hitting the network.

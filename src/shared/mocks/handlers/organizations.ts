@@ -292,7 +292,7 @@ export const organizationHandlers = [
         latitude: input.latitude ?? org.latitude,
         longitude: input.longitude ?? org.longitude,
         status: "Active",
-        imageUrl: null,
+        imageUrl: typeof input.imageUrl === "string" && input.imageUrl ? input.imageUrl : null,
         createdAt: new Date().toISOString(),
       };
       db.listings.push(listing);

@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/shared/api-client/client";
 import type {
+  ImageUpload,
   ImpactStats,
   ListingDetail,
   ListingSearchParams,
@@ -43,4 +44,11 @@ export function impactQuery() {
     queryFn: ({ signal }) => api.get<ImpactStats>("/stats/impact", { signal }),
     staleTime: 5 * 60_000, // cached 5 minutes on the server too (design doc 6.2)
   });
+}
+
+/** Uploads a listing photo; the returned url goes into the listing's imageUrl. */
+export function uploadImage(image: Blob) {
+  const body = new FormData();
+  body.append("file", image, image instanceof File ? image.name : "photo.jpg");
+  return api.post<ImageUpload>("/uploads/images", body);
 }
