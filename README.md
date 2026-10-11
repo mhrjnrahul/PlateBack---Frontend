@@ -11,6 +11,7 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
 - [Design patterns](#design-patterns)
+- [Visual design](#visual-design)
 - [Mock API](#mock-api)
 - [Accessibility](#accessibility)
 - [Responsive design](#responsive-design)
@@ -31,7 +32,7 @@ No backend or setup is needed: the mock API starts automatically. To change sett
 
 ### Demo accounts
 
-Every account uses the password **`password123`**. The login page has buttons that fill them in.
+Every account uses the password **`password123`**. On the login page, open **Try a demo account** and choose **Fill in**.
 
 | Role           | Email                       | Try                                                                 |
 | -------------- | --------------------------- | ------------------------------------------------------------------- |
@@ -39,7 +40,7 @@ Every account uses the password **`password123`**. The login page has buttons th
 | Business owner | arjun@sunrisebakery.example | Dashboard, verify a pickup code (try `K7M2-9QXA`), create a listing |
 | Admin          | admin@plateback.example     | Verify, reject or suspend businesses                                |
 
-Demo changes are saved in your browser. **Reset demo data** in the footer starts again from the original data.
+Demo changes are saved in your browser. **Demo tools** in the footer has **Reset demo data**, which starts again from the original data.
 
 ### Scripts
 
@@ -57,14 +58,15 @@ Demo changes are saved in your browser. **Reset demo data** in the footer starts
 
 ### Environment variables
 
-| Variable            | Default   | Purpose                                                      |
-| ------------------- | --------- | ------------------------------------------------------------ |
-| `VITE_API_BASE_URL` | `/api/v1` | Where API requests go                                        |
-| `VITE_USE_MOCKS`    | on        | Set to `false` to use a real backend instead of the mock API |
+| Variable               | Default   | Purpose                                                      |
+| ---------------------- | --------- | ------------------------------------------------------------ |
+| `VITE_API_BASE_URL`    | `/api/v1` | Where API requests go                                        |
+| `VITE_USE_MOCKS`       | on        | Set to `false` to use a real backend instead of the mock API |
+| `VITE_CURRENCY_SYMBOL` | `Rs`      | Symbol shown before prices                                   |
 
 ## What you can do
 
-The app has 11 pages, all linked through role-based navigation.
+The app has 12 pages, all linked through role-based navigation.
 
 | Page                                       | Route                      | Who                                   |
 | ------------------------------------------ | -------------------------- | ------------------------------------- |
@@ -75,6 +77,7 @@ The app has 11 pages, all linked through role-based navigation.
 | Notifications                              | `/me/notifications`        | Signed in                             |
 | List your business                         | `/org/new`                 | Signed in                             |
 | Business dashboard and pickup counter      | `/org/:orgId`              | Members of that business              |
+| Pickup counter (phone at the till)         | `/org/:orgId/pickup`       | Members of that business              |
 | Create listing                             | `/org/:orgId/listings/new` | Members of that business              |
 | Organization review                        | `/admin/organizations`     | Admins                                |
 | Log in / Create an account                 | `/login`, `/register`      | Visitors                              |
@@ -108,6 +111,7 @@ Versions are pinned exactly in `package.json`.
 | Tests         | Vitest 5, Testing Library, user-event        | Component and full-app tests in jsdom                                       |
 | Quality       | ESLint 9 (+ jsx-a11y, React Hooks), Prettier | Linting, including accessibility, and consistent formatting                 |
 | Icons, toasts | lucide-react, sonner                         |                                                                             |
+| Fonts         | Inter, Fraunces (Fontsource)                 | Self-hosted; Fraunces only for page titles and the landing headline         |
 
 Two packages are held back on purpose: TypeScript 6 and ESLint 9, because typescript-eslint and eslint-plugin-jsx-a11y do not support the newest major versions yet.
 
@@ -149,6 +153,21 @@ src/
 - **Schema-validated forms.** Zod schemas mirror the server's rules. Server validation errors are mapped back onto the matching fields.
 - **Design tokens.** Colours, type scale and radii are defined once as CSS variables, with a measured contrast ratio noted for each.
 
+## Visual design
+
+The brand stays green with an orange accent and the ring logo. The rules below keep the screens consistent; the tokens live in `src/styles/index.css`.
+
+- **Money.** Prices are in Nepali rupees, written "Rs 450" with Indian digit grouping ("Rs 1,25,000"), and 0 is "Free". Every price goes through `formatMoney()` (`shared/lib/money.ts`) and the `<Price>` component: the selling price large and green, then the MRP struck through, then the saving ("63% off" on cards, "You save Rs 250 (63% off)" on the listing). The API fields are still `price` and `originalPrice`.
+- **Colour roles.** A green background means either _selected_ (`--selected`: chips, tabs, menu items) or _success_ (`--success-tint`: badges, alerts). Neutral panels use `--surface`; urgency (few left, countdowns) uses orange text on `--highlight-tint`. Each pair has its contrast ratio next to it.
+- **Type.** Inter for everything, with tabular numbers for prices and counts. Fraunces for page titles (32 px) and the landing headline (44 px, 32 px on phones). Sizes come from one scale: 14, 16, 18, 20, 24, 32, 44 px.
+- **Shape and depth.** Two radii: 8 px for inputs, buttons and small blocks, 12 px for cards. Shadows only on things that float (menus, sheets, dialogs); cards use a border, which turns green on hover. Transitions are short (150 ms) colour and opacity changes.
+- **Shared pieces.** `PageHeader` (every page title), `Select` (native select, styled), `Price`, `MoneyInput`, `Skeleton`, `LiveDot`, and a `destructive-outline` button for cancel and reject.
+- **Fixed bars on phones.** The tab bar and the listing page's reserve bar publish their heights as CSS variables (`--tab-bar`, `--bottom-bar`), so the page padding and toasts always clear them.
+
+### Listing photos
+
+Listings show a photo when there is one, and otherwise a flat illustration for the category (croissant, thali, grocery bag, cup or gift) on a warm tint. A photo that is missing or fails to load falls back silently, so nothing looks broken. The demo listings look for photos in `public/images/listings/`; that folder's [README](public/images/listings/README.md) lists the file names and the format (4:3 JPEG).
+
 ## Mock API
 
 There is no backend yet, so MSW intercepts requests to `/api/v1/*` and answers like the real API described in design document section 6:
@@ -164,7 +183,7 @@ The code is in `src/shared/mocks/`. It is loaded only when mocks are on, so it i
 
 Target: WCAG 2.1 AA (design document section 3.2).
 
-- **Measured:** Lighthouse accessibility score of **100** on the landing, browse, listing, login and register pages, with no failing checks.
+- **Measured:** Lighthouse accessibility score of **100** on every page, at mobile and desktop settings, and no axe violations (WCAG 2.1 A/AA and best practice) at 360 and 1280 px.
 - **Contrast:** every text colour is chosen for at least 4.5:1, and form field borders for 3:1. The ratios are noted next to each token in `index.css`.
 - **Structure:** semantic landmarks, one `h1` per page, a skip link, and a page title per route.
 - **Forms:** every field has a visible label. Errors and hints are linked with `aria-describedby`, and errors are never shown by colour alone.
@@ -177,7 +196,8 @@ Target: WCAG 2.1 AA (design document section 3.2).
 
 The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px) from a 360 px minimum.
 
-- **Below 768 px:** the navigation becomes a drawer plus a bottom tab bar, browse filters move to a bottom sheet, and the pickup counter moves to the top of the dashboard.
+- **Below 768 px:** the navigation becomes a drawer plus a bottom tab bar, browse filters move to a bottom sheet, listing cards become compact rows, the business listings table becomes stacked rows, and the pickup counter moves to the top of the dashboard.
+- **Below 1024 px:** the listing page keeps the quantity and Reserve button in a bar fixed to the bottom of the screen, above the tab bar.
 - **Checked in Chrome:** no horizontal scrolling on any page, for every role, at 360, 375, 768, 1024, 1280 and 1440 px.
 
 |                                                      |                                                        |                                                            |
@@ -187,7 +207,7 @@ The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px)
 ## Testing
 
 ```bash
-npm run test:run   # 98 tests in 19 files
+npm run test:run   # 117 tests in 23 files
 ```
 
 - **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
