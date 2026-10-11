@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate, useParams } from "react-router";
 import {
@@ -10,6 +11,7 @@ import { isApiError } from "@/shared/api-client/api-error";
 import type { ReactNode } from "react";
 import { useMediaQuery } from "@/shared/hooks/use-media-query";
 import { usePageTitle } from "@/shared/hooks/use-page-title";
+import { imageProblem, shrinkImage } from "@/shared/lib/images";
 import { discountPercent } from "@/shared/lib/money";
 import type { ListingSummary, Organization } from "@/shared/types/api";
 import { Alert } from "@/shared/ui/alert";
@@ -20,7 +22,9 @@ import { MoneyInput } from "@/shared/ui/money-input";
 import { ErrorState } from "@/shared/ui/states";
 import { Textarea } from "@/shared/ui/textarea";
 import { toast } from "@/shared/ui/toaster";
+import { uploadImage } from "../api/listings-api";
 import { ListingCard } from "../components/ListingCard";
+import { PhotoField } from "../components/PhotoField";
 import { Select } from "@/shared/ui/select";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -71,9 +75,41 @@ function ListingForm({ org }: { org: Organization }) {
   });
   const values = useWatch({ control });
 
+  // The photo is resized in the browser and uploaded only when publishing.
+  const [photo, setPhoto] = useState<{ blob: Blob; url: string } | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
+  useEffect(() => {
+    if (!photo) return;
+    return () => URL.revokeObjectURL(photo.url);
+  }, [photo]);
+
+  async function selectPhoto(file: File) {
+    const problem = imageProblem(file);
+    setPhotoError(problem);
+    if (problem) return;
+    setPreparingPhoto(true);
+    const blob = await shrinkImage(file);
+    setPreparingPhoto(false);
+    setPhoto({ blob, url: URL.createObjectURL(blob) });
+  }
+
   async function onSubmit(values: ListingFormValues) {
+    let imageUrl: string | null = null;
+    if (photo) {
+      try {
+        imageUrl = (await uploadImage(photo.blob)).url;
+      } catch (error) {
+        setPhotoError(
+          isApiError(error)
+            ? (error.fieldErrors.file?.[0] ?? error.message)
+            : "Could not upload the photo.",
+        );
+        return;
+      }
+    }
     try {
-      await create.mutateAsync(toListingInput(values, org));
+      await create.mutateAsync({ ...toListingInput(values, org), imageUrl });
       toast.success("Listing published. It's now visible in search.");
       navigate(`/org/${org.id}`);
     } catch (error) {
@@ -108,6 +144,7 @@ function ListingForm({ org }: { org: Organization }) {
     pickupEnd: (validWindow ? pickup.end : new Date()).toISOString(),
     status: "Active",
     distanceKm: null,
+    imageUrl: photo?.url ?? null,
   };
 
   const serverError =
@@ -172,6 +209,19 @@ function ListingForm({ org }: { org: Organization }) {
           >
             <Textarea rows={3} {...register("description")} />
           </Field>
+        </FormGroup>
+
+        <FormGroup legend="Photo" description="Optional. A real photo helps customers decide.">
+          <PhotoField
+            previewUrl={photo?.url ?? null}
+            preparing={preparingPhoto}
+            error={photoError}
+            onSelect={(file) => void selectPhoto(file)}
+            onRemove={() => {
+              setPhoto(null);
+              setPhotoError(null);
+            }}
+          />
         </FormGroup>
 
         <FormGroup legend="Pricing">
