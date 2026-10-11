@@ -4,7 +4,7 @@ import { renderApp } from "@/test/render-app";
 
 describe("routes", () => {
   it.each([
-    ["/", "Good food shouldn't go to waste."],
+    ["/", /Reserve tonight's leftover food/],
     ["/browse", "Browse listings"],
     ["/listings/listing-pastry", "Mixed pastry box"],
     ["/login", "Log in"],

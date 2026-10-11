@@ -19,10 +19,18 @@ describe("ListingDetailPage", () => {
     );
   });
 
+  it("shows the selling price, the MRP and what you save, in rupees", async () => {
+    await renderApp("/listings/listing-thali");
+    const panel = within(screen.getByRole("complementary", { name: "Reserve" }));
+    expect(panel.getByText("Rs 150")).toBeInTheDocument();
+    expect(panel.getByText("Rs 400")).toHaveClass("line-through");
+    expect(panel.getByText("You save Rs 250 (62% off)")).toBeInTheDocument();
+  });
+
   it("reserves a quantity and shows the pickup code (US1)", async () => {
     const { user } = await renderApp("/listings/listing-thali", { as: "user-bikash" });
     await user.click(await screen.findByRole("button", { name: "Increase quantity" }));
-    await user.click(screen.getByRole("button", { name: "Reserve · $6.00" }));
+    await user.click(screen.getByRole("button", { name: "Reserve · Rs 300" }));
 
     const dialog = within(await screen.findByRole("dialog", { name: "Reserved!" }));
     expect(dialog.getByText(/^[2-9A-HJKMNP-Z]{4}-[2-9A-HJKMNP-Z]{4}$/)).toBeInTheDocument();

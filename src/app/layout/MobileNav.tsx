@@ -40,7 +40,7 @@ export function MobileNav() {
                   className={({ isActive }) =>
                     cn(
                       "flex min-h-11 items-center rounded-md px-3 text-base font-medium transition-colors hover:bg-accent",
-                      isActive && !item.to.includes("#") && "bg-primary-tint text-primary",
+                      isActive && !item.to.includes("#") && "bg-selected text-primary",
                     )
                   }
                 >

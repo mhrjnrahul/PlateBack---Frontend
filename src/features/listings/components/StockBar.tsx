@@ -29,10 +29,7 @@ export function StockBar({
         className="h-2 overflow-hidden rounded-full bg-surface ring-1 ring-border ring-inset"
       >
         <div
-          className={cn(
-            "h-full rounded-full transition-[width]",
-            low ? "bg-highlight" : "bg-primary",
-          )}
+          className={cn("h-full rounded-full", low ? "bg-highlight" : "bg-primary")}
           style={{ width: `${percent}%` }}
         />
       </div>

@@ -13,7 +13,8 @@ describe("LoginPage", () => {
 
   it("logs in with a demo account and returns to the page that asked", async () => {
     const { user, router } = await renderApp("/login?redirect=%2Fme%2Freservations");
-    await user.click(screen.getByRole("button", { name: "Customer maya@example.com" }));
+    await user.click(screen.getByText("Try a demo account"));
+    await user.click(screen.getByRole("button", { name: "Fill in Customer account" }));
     await user.click(screen.getByRole("button", { name: "Log in" }));
     expect(
       await screen.findByRole("heading", { level: 1, name: "My reservations" }),
@@ -23,7 +24,8 @@ describe("LoginPage", () => {
 
   it("ignores redirects to other sites", async () => {
     const { user, router } = await renderApp("/login?redirect=%2F%2Fevil.example");
-    await user.click(screen.getByRole("button", { name: "Customer maya@example.com" }));
+    await user.click(screen.getByText("Try a demo account"));
+    await user.click(screen.getByRole("button", { name: "Fill in Customer account" }));
     await user.click(screen.getByRole("button", { name: "Log in" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/browse"));
   });

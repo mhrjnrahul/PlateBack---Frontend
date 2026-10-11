@@ -1,45 +1,50 @@
-import {
-  Croissant,
-  CupSoda,
-  Gift,
-  ShoppingBasket,
-  UtensilsCrossed,
-  type LucideIcon,
-} from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import type { ListingCategory } from "@/shared/types/api";
-
-const categoryIcons: Record<ListingCategory, LucideIcon> = {
-  Bakery: Croissant,
-  Meals: UtensilsCrossed,
-  Groceries: ShoppingBasket,
-  Beverages: CupSoda,
-  Other: Gift,
-};
+import { CategoryIllustration } from "./CategoryIllustration";
 
 /**
- * Listing photo, or a category illustration when there is none. Decorative:
- * the title next to it carries the meaning, so the image has empty alt text.
+ * Listing photo with an illustrated fallback. The category illustration is
+ * always drawn first; the photo fades in on top only once it has loaded, and
+ * is dropped if it fails (missing file, bad URL). So there is never a broken
+ * image icon or an empty box.
+ *
+ * Photos next to a title are decorative (empty alt). Pass `alt` only when the
+ * image adds information the text does not.
  */
 export function ListingImage({
   category,
   imageUrl,
+  alt = "",
   className,
 }: {
   category: ListingCategory;
   imageUrl?: string | null;
+  alt?: string;
   className?: string;
 }) {
-  if (imageUrl) {
-    return <img src={imageUrl} alt="" className={cn("object-cover", className)} loading="lazy" />;
-  }
-  const Icon = categoryIcons[category];
+  // Keyed by URL, so a new URL gets a fresh attempt without an effect.
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const showImage = Boolean(imageUrl) && failedUrl !== imageUrl;
+
   return (
-    <div
-      aria-hidden="true"
-      className={cn("flex items-center justify-center bg-primary-tint text-primary", className)}
-    >
-      <Icon className="size-1/3 max-h-16 max-w-16" strokeWidth={1.5} />
+    <div className={cn("relative overflow-hidden", className)}>
+      <CategoryIllustration category={category} className="absolute inset-0" />
+      {showImage && (
+        <img
+          src={imageUrl!}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoadedUrl(imageUrl!)}
+          onError={() => setFailedUrl(imageUrl!)}
+          className={cn(
+            "absolute inset-0 size-full object-cover transition-opacity",
+            loadedUrl === imageUrl ? "opacity-100" : "opacity-0",
+          )}
+        />
+      )}
     </div>
   );
 }

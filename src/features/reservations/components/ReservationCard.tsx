@@ -1,12 +1,21 @@
-import { Navigation } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  Clock,
+  Navigation,
+  type LucideIcon,
+} from "lucide-react";
 import { Link } from "react-router";
-import { ListingImage } from "@/features/listings/components/ListingImage";
 import { PickupCountdown } from "@/features/listings/components/PickupCountdown";
 import { formatDateTime, formatPickupWindow } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/utils";
 import type { ReservationStatus, ReservationWithListing } from "@/shared/types/api";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Price } from "@/shared/ui/price";
 import { CancelReservationButton } from "./CancelReservationButton";
+import { mapDirectionsUrl } from "@/shared/lib/maps";
 
 const statusBadge: Record<
   ReservationStatus,
@@ -23,31 +32,57 @@ export function ReservationStatusBadge({ status }: { status: ReservationStatus }
   return <Badge variant={variant}>{label}</Badge>;
 }
 
-/** An active reservation with its pickup code (wireframe 4, notes 2-4). */
+const statusText: Record<
+  ReservationStatus,
+  { label: string; icon: LucideIcon; className: string }
+> = {
+  Reserved: { label: "Reserved", icon: Clock, className: "text-primary" },
+  Collected: { label: "Collected", icon: CircleCheck, className: "text-primary" },
+  Cancelled: { label: "Cancelled", icon: CircleX, className: "text-muted-foreground" },
+  NoShow: { label: "No-show", icon: CircleAlert, className: "text-destructive" },
+};
+
+/** Status as coloured text with an icon, for compact rows (the text carries the meaning). */
+export function ReservationStatusText({ status }: { status: ReservationStatus }) {
+  const { label, icon: Icon, className } = statusText[status];
+  return (
+    <span className={cn("inline-flex items-center gap-1 text-sm font-semibold", className)}>
+      <Icon aria-hidden="true" className="size-4" />
+      {label}
+    </span>
+  );
+}
+
+/**
+ * An active reservation, code first: the pickup code is what the customer
+ * needs at the counter, so it leads (wireframe 4, notes 2-4).
+ */
 export function ActiveReservationCard({ reservation }: { reservation: ReservationWithListing }) {
   const { listing } = reservation;
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`;
+  const mapsUrl = mapDirectionsUrl(listing.latitude, listing.longitude);
   return (
-    <article className="overflow-hidden rounded-xl border-2 border-primary/30 bg-card">
-      <div className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
-        <ListingImage
-          category={listing.category}
-          imageUrl={listing.imageUrl}
-          className="hidden size-24 shrink-0 rounded-lg sm:flex"
-        />
+    <article className="rounded-xl border bg-card p-4 sm:p-5">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+        {/* Large, high-contrast and real text, so staff can read it from a phone (note 3) */}
+        <div className="rounded-md border-2 border-foreground px-5 py-3 text-center sm:text-left">
+          <p className="text-sm font-semibold text-muted-foreground">Pickup code</p>
+          <p className="font-mono text-4xl font-bold tracking-wider whitespace-nowrap">
+            {reservation.pickupCode}
+          </p>
+          <p className="text-sm text-muted-foreground">Show this at the counter</p>
+        </div>
+
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-semibold">
-              <Link
-                to={`/listings/${reservation.listingId}`}
-                className="underline-offset-4 hover:underline"
-              >
-                {listing.title}
-              </Link>{" "}
-              <span className="text-muted-foreground">× {reservation.quantity}</span>
-            </h3>
-            <ReservationStatusBadge status={reservation.status} />
-          </div>
+          {/* h2: the cards sit directly under the page title (the tabs are not headings) */}
+          <h2 className="text-base font-semibold">
+            <Link
+              to={`/listings/${reservation.listingId}`}
+              className="underline-offset-4 hover:underline"
+            >
+              {listing.title}
+            </Link>{" "}
+            <span className="font-normal text-muted-foreground">× {reservation.quantity}</span>
+          </h2>
           <p className="text-sm text-muted-foreground">
             {listing.organizationName} · {listing.address}
           </p>
@@ -55,54 +90,50 @@ export function ActiveReservationCard({ reservation }: { reservation: Reservatio
             {formatPickupWindow(listing.pickupStart, listing.pickupEnd)}
           </p>
           <PickupCountdown start={listing.pickupStart} end={listing.pickupEnd} />
+          {/* Total for the reserved quantity, paid at the counter */}
+          <Price
+            price={listing.price * reservation.quantity}
+            mrp={listing.originalPrice * reservation.quantity}
+            size="sm"
+            className="pt-1"
+          />
         </div>
       </div>
-      <div className="flex flex-col gap-4 border-t bg-surface p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        {/* Large, high-contrast and real text, so staff can read it from a phone (note 3) */}
-        <div className="rounded-lg bg-highlight-tint px-4 py-2">
-          <p className="text-xs font-semibold text-urgency">Pickup code</p>
-          <p className="font-mono text-3xl font-bold tracking-wider">{reservation.pickupCode}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <a href={mapsUrl} target="_blank" rel="noreferrer">
-              <Navigation aria-hidden="true" />
-              Directions <span className="sr-only">(opens in a new tab)</span>
-            </a>
-          </Button>
-          <CancelReservationButton reservation={reservation} />
-        </div>
+
+      <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
+        <Button asChild variant="secondary">
+          <a href={mapsUrl} target="_blank" rel="noreferrer">
+            <Navigation aria-hidden="true" />
+            Directions <span className="sr-only">(opens in a new tab)</span>
+          </a>
+        </Button>
+        <CancelReservationButton reservation={reservation} />
       </div>
     </article>
   );
 }
 
-/** A past reservation in the History tab. */
+/** A past reservation in the History tab: one compact line. */
 export function HistoryReservationRow({ reservation }: { reservation: ReservationWithListing }) {
   const { listing } = reservation;
   const when =
     reservation.status === "Collected" && reservation.collectedAt
-      ? `Collected ${formatDateTime(reservation.collectedAt)}`
+      ? formatDateTime(reservation.collectedAt)
       : reservation.status === "Cancelled" && reservation.cancelledAt
-        ? `Cancelled ${formatDateTime(reservation.cancelledAt)}${reservation.lateCancel ? " (late)" : ""}`
-        : `Window ended ${formatDateTime(listing.pickupEnd)}`;
+        ? `${formatDateTime(reservation.cancelledAt)}${reservation.lateCancel ? " (late)" : ""}`
+        : formatDateTime(listing.pickupEnd);
   return (
-    <li className="flex items-center gap-4 py-4">
-      <ListingImage
-        category={listing.category}
-        imageUrl={listing.imageUrl}
-        className="size-14 shrink-0 rounded-lg"
-      />
+    <li className="flex items-center gap-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className="font-semibold">
+        <p className="truncate font-medium">
           {listing.title}{" "}
           <span className="font-normal text-muted-foreground">× {reservation.quantity}</span>
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="truncate text-sm text-muted-foreground">
           {listing.organizationName} · {when}
         </p>
       </div>
-      <ReservationStatusBadge status={reservation.status} />
+      <ReservationStatusText status={reservation.status} />
     </li>
   );
 }

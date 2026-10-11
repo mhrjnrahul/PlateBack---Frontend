@@ -13,14 +13,13 @@ import { Field } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { toast } from "@/shared/ui/toaster";
 import { useCreateOrganization } from "../api/organizations-api";
+import { Select } from "@/shared/ui/select";
+import { PageHeader } from "@/shared/ui/page-header";
 import {
   BUSINESS_TYPES,
   organizationFormSchema,
   type OrganizationFormValues,
 } from "../schemas/organization-form";
-
-const selectClass =
-  "h-11 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-base aria-invalid:border-destructive md:h-10 md:text-sm";
 
 /**
  * Register a business (flow C). It starts as Pending; an admin verifies it
@@ -82,11 +81,10 @@ export function CreateOrganizationPage() {
 
   return (
     <div className="page-container max-w-2xl py-8 md:py-10">
-      <h1 className="text-3xl font-bold tracking-tight">List your business</h1>
-      <p className="mt-2 text-muted-foreground">
-        Tell us about your bakery, cafe, restaurant or shop. An admin checks every business before
-        it can publish, usually within a day.
-      </p>
+      <PageHeader
+        title="List your business"
+        description="Tell us about your bakery, cafe, restaurant or shop. An admin checks every business before it can publish, usually within a day."
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-8 space-y-5">
         {isApiError(create.error) && (
@@ -98,7 +96,7 @@ export function CreateOrganizationPage() {
           <Input autoComplete="organization" {...register("name")} />
         </Field>
         <Field label="Type of business" required error={errors.type?.message}>
-          <select className={selectClass} defaultValue="" {...register("type")}>
+          <Select defaultValue="" {...register("type")}>
             <option value="" disabled>
               Choose…
             </option>
@@ -107,7 +105,7 @@ export function CreateOrganizationPage() {
                 {t}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field
           label="Address"
@@ -124,7 +122,7 @@ export function CreateOrganizationPage() {
             error={errors.area?.message}
             hint="Used for distance in search. There is no map lookup yet."
           >
-            <select className={selectClass} {...register("area")}>
+            <Select {...register("area")}>
               <option value="" disabled>
                 Choose…
               </option>
@@ -134,7 +132,7 @@ export function CreateOrganizationPage() {
                   {a.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Button
             type="button"

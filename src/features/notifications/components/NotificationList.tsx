@@ -33,23 +33,26 @@ export function NotificationList({ notifications }: { notifications: Notificatio
           <Link
             to={hrefFor(n)}
             onClick={() => !n.isRead && markRead.mutate(n.id)}
-            className="flex gap-3 rounded-md px-2 py-3 transition-colors hover:bg-accent"
+            className="flex gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-accent"
           >
+            {/* Unread dot: primary on white 6.47:1; the bold title and "Unread:" carry the meaning */}
             <span
               aria-hidden="true"
               className={cn(
-                "mt-1.5 size-2.5 shrink-0 rounded-full",
-                n.isRead ? "border border-input" : "bg-highlight",
+                "mt-2 size-2 shrink-0 rounded-full",
+                n.isRead ? "bg-transparent" : "bg-primary",
               )}
             />
             <span className="min-w-0 flex-1">
-              <span className={cn("block", !n.isRead && "font-semibold")}>
-                {!n.isRead && <span className="sr-only">Unread:</span>} {n.title}
+              <span className="flex items-baseline justify-between gap-3">
+                <span className={cn("min-w-0", !n.isRead && "font-semibold")}>
+                  {!n.isRead && <span className="sr-only">Unread:</span>} {n.title}
+                </span>
+                <span className="shrink-0 text-sm text-muted-foreground">
+                  {formatRelative(n.createdAt)}
+                </span>
               </span>
               <span className="block text-sm text-muted-foreground">{n.body}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                {formatRelative(n.createdAt)}
-              </span>
             </span>
           </Link>
         </li>

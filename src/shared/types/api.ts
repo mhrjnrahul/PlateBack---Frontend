@@ -221,7 +221,12 @@ export type ListingInput = {
   latitude: number;
   longitude: number;
   allergenNotes: string;
+  /** From POST /uploads/images; omit or null for no photo. */
+  imageUrl?: string | null;
 };
+
+/** POST /uploads/images (multipart, field "file"): where the stored photo lives. */
+export type ImageUpload = { url: string };
 
 // ---------- Reservations ----------
 

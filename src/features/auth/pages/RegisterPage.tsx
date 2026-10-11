@@ -9,6 +9,7 @@ import { Field } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { registerSchema, safeRedirect, type RegisterValues } from "../schemas/auth-forms";
 import { homeFor, useAuth } from "../session/auth-context";
+import { PageHeader } from "@/shared/ui/page-header";
 
 /**
  * Every account starts as a customer. "?next=business" (from "List your
@@ -54,16 +55,14 @@ export function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {forBusiness ? "Create a business account" : "Create an account"}
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          {forBusiness
+      <PageHeader
+        title={forBusiness ? "Create a business account" : "Create an account"}
+        description={
+          forBusiness
             ? "First create your account; next you'll add your business details."
-            : "Reserve surplus food near you in a few taps."}
-        </p>
-      </div>
+            : "Reserve surplus food near you."
+        }
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {errors.root && (

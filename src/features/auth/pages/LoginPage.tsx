@@ -10,6 +10,7 @@ import { Input } from "@/shared/ui/input";
 import { DEMO_PASSWORD, DemoAccounts } from "../components/DemoAccounts";
 import { loginSchema, safeRedirect, type LoginValues } from "../schemas/auth-forms";
 import { homeFor, useAuth } from "../session/auth-context";
+import { PageHeader } from "@/shared/ui/page-header";
 
 const mocksOn = import.meta.env.VITE_USE_MOCKS !== "false";
 
@@ -39,7 +40,9 @@ export function LoginPage() {
       navigate(safeRedirect(redirect, homeFor(signedIn)), { replace: true });
     } catch (error) {
       setError("root", {
-        message: isApiError(error) ? error.message : "Could not log in. Please try again.",
+        message: isApiError(error)
+          ? error.message
+          : "We couldn't log you in. Check your connection and try again.",
       });
     }
   }
@@ -52,14 +55,12 @@ export function LoginPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Log in</h1>
-        <p className="mt-1 text-muted-foreground">
-          {redirect
-            ? "Log in to continue."
-            : "Welcome back. Log in to reserve food and see your pickup codes."}
-        </p>
-      </div>
+      <PageHeader
+        title="Log in"
+        description={
+          redirect ? "Log in to continue." : "Log in to reserve food and see your pickup codes."
+        }
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {errors.root && (

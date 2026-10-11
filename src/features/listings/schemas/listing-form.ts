@@ -20,9 +20,14 @@ export const listingFormSchema = z
       .int("Use a whole number.")
       .min(1, "At least 1 portion.")
       .max(200, "At most 200 portions."),
-    originalPrice: z.number({ error: "Enter the original price." }).min(0, "Cannot be negative."),
+    // Whole rupees (MRP and selling price); field names match the API.
+    originalPrice: z
+      .number({ error: "Enter the MRP." })
+      .int("Use whole rupees.")
+      .min(0, "Cannot be negative."),
     price: z
-      .number({ error: "Enter a price (0 to give it away free)." })
+      .number({ error: "Enter the selling price (0 to give it away free)." })
+      .int("Use whole rupees.")
       .min(0, "Cannot be negative."),
     description: z.string().trim().max(500, "Keep the description under 500 characters."),
     date: z.string().min(1, "Choose the pickup date."),
@@ -39,7 +44,7 @@ export const listingFormSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["price"],
-        message: "Price cannot be more than the original price.",
+        message: "Selling price must be equal to or lower than MRP.",
       });
     }
     const { start, end } = pickupWindow(v);

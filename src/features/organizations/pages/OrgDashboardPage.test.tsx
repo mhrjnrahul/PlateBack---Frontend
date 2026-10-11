@@ -44,4 +44,25 @@ describe("OrgDashboardPage", () => {
       within(screen.getByRole("main")).queryByRole("link", { name: "New listing" }),
     ).not.toBeInTheDocument();
   });
+
+  it("has a standalone pickup page for staff at the counter", async () => {
+    const { user } = await renderApp("/org/org-sunrise/pickup", { as: "user-arjun" });
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Pickup counter" }),
+    ).toBeInTheDocument();
+    await user.type(screen.getByRole("textbox", { name: "Customer's pickup code" }), "K7M2-9QXA");
+    await user.click(screen.getByRole("button", { name: "Verify" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("Collected: hand over the food");
+  });
+
+  it("reads the meals chart one day at a time with the arrow keys", async () => {
+    const { user } = await renderApp("/org/org-sunrise", { as: "user-arjun" });
+    const chart = await screen.findByRole("slider", { name: "Day" });
+    expect(chart).toHaveAttribute("aria-valuetext", expect.stringMatching(/^Today: \d+ meals?$/));
+    chart.focus();
+    await user.keyboard("{Home}");
+    expect(chart).toHaveAttribute("aria-valuenow", "0");
+    await user.keyboard("{ArrowRight}");
+    expect(chart).toHaveAttribute("aria-valuenow", "1");
+  });
 });

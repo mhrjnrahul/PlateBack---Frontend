@@ -7,8 +7,8 @@ const valid = {
   title: "Mixed pastry box",
   category: "Bakery",
   quantityTotal: 10,
-  originalPrice: 12,
-  price: 4.5,
+  originalPrice: 400,
+  price: 150,
   description: "",
   date,
   from: "18:00",
@@ -31,12 +31,18 @@ describe("listing form schema", () => {
 
   it("applies the business rules", () => {
     expect(errorsFor({ ...valid, title: "ab" })).toHaveProperty("title");
-    expect(errorsFor({ ...valid, price: 20 })).toMatchObject({
-      price: "Price cannot be more than the original price.",
+    expect(errorsFor({ ...valid, price: 500 })).toMatchObject({
+      price: "Selling price must be equal to or lower than MRP.",
     });
     expect(errorsFor({ ...valid, quantityTotal: 0 })).toHaveProperty("quantityTotal");
     expect(errorsFor({ ...valid, quantityTotal: Number.NaN })).toHaveProperty("quantityTotal");
     expect(errorsFor({ ...valid, allergenNotes: "" })).toHaveProperty("allergenNotes");
+  });
+
+  it("takes whole rupees only, and 0 as free", () => {
+    expect(errorsFor({ ...valid, price: 149.5 })).toMatchObject({ price: "Use whole rupees." });
+    expect(errorsFor({ ...valid, originalPrice: -1 })).toHaveProperty("originalPrice");
+    expect(errorsFor({ ...valid, price: 0 })).toEqual({});
   });
 
   it("checks the pickup window length", () => {

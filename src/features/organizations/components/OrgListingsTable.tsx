@@ -16,6 +16,7 @@ import {
 } from "@/shared/ui/alert-dialog";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Price } from "@/shared/ui/price";
 import { EmptyState } from "@/shared/ui/states";
 import { toast } from "@/shared/ui/toaster";
 import { useCancelListing } from "../api/organizations-api";
@@ -102,66 +103,113 @@ export function OrgListingsTable({
     );
   }
   return (
-    <div className="relative overflow-x-auto rounded-xl border">
-      <table className="w-full min-w-[40rem] text-sm">
-        <caption className="sr-only">Your listings</caption>
-        <thead className="border-b bg-surface text-left text-muted-foreground">
-          <tr>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Listing
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Stock
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Pickup
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Status
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {listings.map((listing) => {
-            const badge = statusBadge[listing.status];
-            const cancellable = listing.status === "Active" || listing.status === "SoldOut";
-            return (
-              <tr key={listing.id}>
-                <th scope="row" className="px-4 py-3 text-left font-semibold">
-                  <Link
-                    to={`/listings/${listing.id}`}
-                    className="underline-offset-4 hover:underline"
-                  >
-                    {listing.title}
-                  </Link>
-                </th>
-                <td className="w-40 px-4 py-3">
-                  <StockBar
-                    available={listing.quantityAvailable}
-                    total={listing.quantityTotal}
-                    showLabel={false}
-                  />
-                  <span className="mt-1 block text-xs text-muted-foreground tabular-nums">
-                    {listing.quantityAvailable} of {listing.quantityTotal} left
-                  </span>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {formatPickupWindow(listing.pickupStart, listing.pickupEnd)}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {cancellable && <CancelListingButton orgId={orgId} listing={listing} />}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      {/* Below md: one stacked row per listing */}
+      <ul aria-label="Your listings" className="divide-y rounded-xl border md:hidden">
+        {listings.map((listing) => {
+          const badge = statusBadge[listing.status];
+          const cancellable = listing.status === "Active" || listing.status === "SoldOut";
+          return (
+            <li key={listing.id} className="space-y-2 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <Link
+                  to={`/listings/${listing.id}`}
+                  className="font-semibold underline-offset-4 hover:underline"
+                >
+                  {listing.title}
+                </Link>
+                <Badge variant={badge.variant}>{badge.label}</Badge>
+              </div>
+              <Price price={listing.price} mrp={listing.originalPrice} size="sm" />
+              <StockBar
+                available={listing.quantityAvailable}
+                total={listing.quantityTotal}
+                showLabel={false}
+              />
+              <p className="text-sm text-muted-foreground">
+                <span className="tabular-nums">
+                  {listing.quantityAvailable} of {listing.quantityTotal} left
+                </span>
+                {" · "}
+                {formatPickupWindow(listing.pickupStart, listing.pickupEnd)}
+              </p>
+              {cancellable && (
+                <div className="-ml-3">
+                  <CancelListingButton orgId={orgId} listing={listing} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="relative hidden overflow-x-auto rounded-xl border md:block">
+        <table className="w-full min-w-[46rem] text-sm">
+          <caption className="sr-only">Your listings</caption>
+          <thead className="border-b bg-surface text-left text-muted-foreground">
+            <tr>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Listing
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Price
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Stock
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Pickup
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Status
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {listings.map((listing) => {
+              const badge = statusBadge[listing.status];
+              const cancellable = listing.status === "Active" || listing.status === "SoldOut";
+              return (
+                <tr key={listing.id}>
+                  <th scope="row" className="px-4 py-3 text-left font-semibold">
+                    <Link
+                      to={`/listings/${listing.id}`}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {listing.title}
+                    </Link>
+                  </th>
+                  <td className="px-4 py-3">
+                    <Price price={listing.price} mrp={listing.originalPrice} size="sm" />
+                  </td>
+                  <td className="w-40 px-4 py-3">
+                    <StockBar
+                      available={listing.quantityAvailable}
+                      total={listing.quantityTotal}
+                      showLabel={false}
+                    />
+                    <span className="mt-1 block text-sm text-muted-foreground tabular-nums">
+                      {listing.quantityAvailable} of {listing.quantityTotal} left
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {formatPickupWindow(listing.pickupStart, listing.pickupEnd)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {cancellable && <CancelListingButton orgId={orgId} listing={listing} />}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

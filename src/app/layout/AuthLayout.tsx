@@ -2,25 +2,21 @@ import { Link, Outlet, ScrollRestoration } from "react-router";
 import { Logo } from "@/shared/ui/logo";
 import { SkipLink } from "./SkipLink";
 
-/** Login and register: logo and a centred card, no site navigation. */
+/** Login and register: one centred column with the logo above, no site navigation. */
 export function AuthLayout() {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
+    <div className="min-h-dvh">
       <SkipLink />
-      <header className="page-container flex h-16 items-center">
-        <Link to="/" className="rounded-md">
-          <Logo />
-        </Link>
-      </header>
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="flex flex-1 items-start justify-center px-4 py-10 focus:outline-none sm:items-center"
-      >
-        <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm sm:p-8">
+      <div className="mx-auto w-full max-w-sm px-4 py-10 sm:py-16">
+        <header className="mb-10">
+          <Link to="/" className="inline-block rounded-md">
+            <Logo className="text-xl" />
+          </Link>
+        </header>
+        <main id="main-content" tabIndex={-1} className="focus:outline-none">
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </div>
       <ScrollRestoration />
     </div>
   );

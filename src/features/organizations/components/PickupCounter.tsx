@@ -3,6 +3,7 @@ import { isApiError } from "@/shared/api-client/api-error";
 import type { OrganizationReservation } from "@/shared/types/api";
 import { Alert } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
+import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/input";
 import { useVerifyPickup } from "../api/organizations-api";
 
@@ -10,8 +11,19 @@ import { useVerifyPickup } from "../api/organizations-api";
  * Staff type the customer's code; the server checks it belongs to this
  * organization and marks it Collected (flow D). Focus stays in the field so
  * the next customer can be served straight away.
+ *
+ * "panel" sits on the dashboard; "page" is the standalone pickup page, where
+ * the page title already says what this is, so there is no second heading
+ * and the field is larger.
  */
-export function PickupCounter({ orgId }: { orgId: string }) {
+export function PickupCounter({
+  orgId,
+  variant = "panel",
+}: {
+  orgId: string;
+  variant?: "panel" | "page";
+}) {
+  const page = variant === "page";
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [code, setCode] = useState("");
@@ -36,17 +48,19 @@ export function PickupCounter({ orgId }: { orgId: string }) {
 
   return (
     <section
-      aria-labelledby={`${id}-title`}
-      className="rounded-xl border-2 border-primary/30 bg-card p-5"
+      aria-labelledby={page ? `${id}-code` : `${id}-title`}
+      className={cn(!page && "rounded-xl border bg-card p-5")}
     >
-      <h2 id={`${id}-title`} className="text-lg font-semibold">
-        Pickup counter
-      </h2>
-      <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-        <label htmlFor={`${id}-code`} className="text-sm font-semibold">
+      {!page && (
+        <h2 id={`${id}-title`} className="mb-3 text-xl font-semibold">
+          Pickup counter
+        </h2>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <label htmlFor={`${id}-code`} className="block text-sm font-semibold">
           Customer's pickup code
         </label>
-        <div className="flex gap-2">
+        <div className={cn("flex gap-2", page && "flex-col sm:flex-row")}>
           <Input
             ref={inputRef}
             id={`${id}-code`}
@@ -57,9 +71,12 @@ export function PickupCounter({ orgId }: { orgId: string }) {
             autoCapitalize="characters"
             spellCheck={false}
             maxLength={12}
-            className="font-mono text-lg tracking-wider uppercase placeholder:tracking-normal placeholder:normal-case"
+            className={cn(
+              "font-mono text-lg tracking-wider uppercase placeholder:tracking-normal placeholder:normal-case",
+              page && "h-14 text-2xl md:h-14 md:text-2xl",
+            )}
           />
-          <Button type="submit" disabled={verify.isPending}>
+          <Button type="submit" size={page ? "lg" : "default"} disabled={verify.isPending}>
             {verify.isPending ? "Checking…" : "Verify"}
           </Button>
         </div>
@@ -72,8 +89,10 @@ export function PickupCounter({ orgId }: { orgId: string }) {
         )}
         {verify.isError && (
           <Alert variant="danger" live="assertive" title="Code not accepted">
-            {isApiError(verify.error) ? verify.error.message : "Please try again."} Nothing has
-            changed.
+            {isApiError(verify.error)
+              ? verify.error.message
+              : "Check your connection and try again."}{" "}
+            Nothing has changed.
           </Alert>
         )}
       </div>

@@ -22,7 +22,7 @@ describe("SiteHeader", () => {
 
   it.each([
     ["user-maya", ["Browse", "My reservations"]],
-    ["user-arjun", ["Dashboard", "New listing", "Browse"]],
+    ["user-arjun", ["Dashboard", "Pickup", "New listing", "Browse"]],
     ["user-admin", ["Organizations", "Browse"]],
   ] as const)("shows the links for %s", async (as, expected) => {
     const { names } = await mainNavLinks(as);

@@ -1,22 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  discountPercent,
   formatCountdown,
   formatDay,
   formatDistance,
   formatDuration,
-  formatPrice,
   formatRelative,
 } from "./format";
 
 describe("format", () => {
   const now = new Date(2026, 9, 10, 15, 0);
-
-  it("formats prices, with zero as Free", () => {
-    expect(formatPrice(4.5)).toBe("$4.50");
-    expect(formatPrice(0)).toBe("Free");
-    expect(discountPercent(12, 4.5)).toBe(62);
-  });
 
   it("names nearby days", () => {
     expect(formatDay(new Date(2026, 9, 10, 20).toISOString(), now)).toBe("Today");

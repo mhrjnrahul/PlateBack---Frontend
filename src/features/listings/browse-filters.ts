@@ -6,9 +6,9 @@ export const RADIUS_OPTIONS = [1, 2, 5, 10, 25];
 export const PRICE_OPTIONS = [
   { value: "", label: "Any price" },
   { value: "0", label: "Free only" },
-  { value: "2", label: "Up to $2" },
-  { value: "3", label: "Up to $3" },
-  { value: "5", label: "Up to $5" },
+  { value: "100", label: "Up to Rs 100" },
+  { value: "200", label: "Up to Rs 200" },
+  { value: "300", label: "Up to Rs 300" },
 ];
 export const TIME_OPTIONS = [
   { value: "", label: "Any time" },
@@ -75,6 +75,27 @@ export function writeFilters(f: BrowseFilters): URLSearchParams {
   if (f.sort !== "distance") p.set("sort", f.sort);
   if (f.page > 1) p.set("page", String(f.page));
   return p;
+}
+
+export type ActiveFilter = { key: string; label: string; clear: Partial<BrowseFilters> };
+
+/** Filters that differ from the defaults, as removable chips (location and sort excluded). */
+export function activeFilters(f: BrowseFilters): ActiveFilter[] {
+  const chips: ActiveFilter[] = [];
+  if (f.q) chips.push({ key: "q", label: `"${f.q}"`, clear: { q: "" } });
+  if (f.category) chips.push({ key: "category", label: f.category, clear: { category: "" } });
+  if (f.time) {
+    const label = TIME_OPTIONS.find((o) => o.value === f.time)!.label;
+    chips.push({ key: "time", label, clear: { time: "" } });
+  }
+  if (f.maxPrice) {
+    const label = PRICE_OPTIONS.find((o) => o.value === f.maxPrice)!.label;
+    chips.push({ key: "maxPrice", label, clear: { maxPrice: "" } });
+  }
+  if (f.radiusKm !== 5) {
+    chips.push({ key: "radius", label: `Within ${f.radiusKm} km`, clear: { radiusKm: 5 } });
+  }
+  return chips;
 }
 
 export function locationLabel(f: BrowseFilters) {

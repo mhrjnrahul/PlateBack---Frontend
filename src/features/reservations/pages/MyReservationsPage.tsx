@@ -5,32 +5,37 @@ import { useAuth } from "@/features/auth/session/auth-context";
 import { notificationsQuery } from "@/features/notifications/api/notifications-api";
 import { NotificationList } from "@/features/notifications/components/NotificationList";
 import { usePageTitle } from "@/shared/hooks/use-page-title";
-import { formatPrice } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import type { ReservationWithListing } from "@/shared/types/api";
 import { Button } from "@/shared/ui/button";
+import { Price } from "@/shared/ui/price";
 import { EmptyState, ErrorState } from "@/shared/ui/states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { myReservationsQuery } from "../api/reservations-api";
 import { ActiveReservationCard, HistoryReservationRow } from "../components/ReservationCard";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 function ImpactCard({ history }: { history: ReservationWithListing[] | undefined }) {
   const collected = history?.filter((r) => r.status === "Collected") ?? [];
   const meals = collected.reduce((sum, r) => sum + r.quantity, 0);
-  const saved = collected.reduce(
-    (sum, r) => sum + (r.listing.originalPrice - r.listing.price) * r.quantity,
-    0,
-  );
+  const paid = collected.reduce((sum, r) => sum + r.listing.price * r.quantity, 0);
+  const mrp = collected.reduce((sum, r) => sum + r.listing.originalPrice * r.quantity, 0);
   return (
-    <section aria-labelledby="impact" className="rounded-xl bg-primary-tint p-5">
+    <section aria-labelledby="impact" className="rounded-xl border p-5">
       <h2 id="impact" className="font-semibold">
         Your impact
       </h2>
       <p className="mt-2 flex items-baseline gap-2">
-        <span className="text-4xl font-bold text-primary tabular-nums">{meals}</span>
+        <span className="text-3xl font-bold text-primary tabular-nums">{meals}</span>
         <span>meals rescued</span>
       </p>
-      <p className="mt-1 text-sm">{formatPrice(saved)} saved compared with the original prices</p>
+      {meals > 0 && (
+        <>
+          <p className="mt-3 text-sm text-muted-foreground">What you paid for them</p>
+          <Price price={paid} mrp={mrp} size="sm" savings="amount" />
+        </>
+      )}
     </section>
   );
 }
@@ -44,21 +49,22 @@ function ReliabilityCard({ score }: { score: number }) {
         <h2 id="reliability" className="font-semibold">
           Reliability
         </h2>
-        <p className="font-semibold tabular-nums">{score} / 100</p>
+        <p className={cn("font-semibold tabular-nums", low && "text-urgency")}>{score} / 100</p>
       </div>
-      <div
-        aria-hidden="true"
-        className="mt-3 h-2 overflow-hidden rounded-full bg-surface ring-1 ring-border ring-inset"
-      >
+      <div aria-hidden="true" className="mt-3 h-1 overflow-hidden rounded-full bg-border">
         <div
           className={cn("h-full rounded-full", low ? "bg-highlight" : "bg-primary")}
           style={{ width: `${score}%` }}
         />
       </div>
-      <p className={cn("mt-3 text-sm", low ? "font-medium text-urgency" : "text-muted-foreground")}>
-        {low
-          ? "Your score is below 60, so you can hold 1 active reservation at a time. Collecting food raises it again."
-          : "Collecting raises your score (+2). Late cancellations (-5) and no-shows (-20) lower it. Below 60 you can hold only 1 reservation."}
+      {low && (
+        <p className="mt-3 text-sm font-medium text-urgency">
+          Below 60 you can hold 1 active reservation at a time. Collecting food raises it again.
+        </p>
+      )}
+      <p className="mt-3 text-sm text-muted-foreground">
+        Collecting adds 2. A late cancellation takes off 5 and a no-show 20. Below 60 you can hold
+        only 1 reservation.
       </p>
     </section>
   );
@@ -106,7 +112,7 @@ export function MyReservationsPage() {
 
   return (
     <div className="page-container py-8 md:py-10">
-      <h1 className="text-3xl font-bold tracking-tight">My reservations</h1>
+      <PageHeader title="My reservations" />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_20rem]">
         <Tabs
@@ -126,7 +132,7 @@ export function MyReservationsPage() {
             {active.isError ? (
               <ErrorState error={active.error} onRetry={() => void active.refetch()} />
             ) : active.isPending ? (
-              <div className="h-56 animate-pulse rounded-xl bg-surface" aria-hidden="true" />
+              <Skeleton className="h-56 rounded-xl" />
             ) : active.data.items.length === 0 ? (
               <EmptyState
                 title="No active reservations"
@@ -147,7 +153,7 @@ export function MyReservationsPage() {
             {history.isError ? (
               <ErrorState error={history.error} onRetry={() => void history.refetch()} />
             ) : history.isPending ? (
-              <div className="h-56 animate-pulse rounded-xl bg-surface" aria-hidden="true" />
+              <Skeleton className="h-56 rounded-xl" />
             ) : history.data.items.length === 0 ? (
               <EmptyState title="No past reservations yet" />
             ) : (

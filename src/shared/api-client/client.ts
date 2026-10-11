@@ -64,7 +64,9 @@ async function request<T>(
   isRetry = false,
 ): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  // FormData (file uploads) sets its own multipart Content-Type with the boundary.
+  const isForm = options.body instanceof FormData;
+  if (options.body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   const token = getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -73,7 +75,12 @@ async function request<T>(
     response = await fetch(buildUrl(path, options.query), {
       method,
       headers,
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body:
+        options.body === undefined
+          ? undefined
+          : isForm
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
       signal: options.signal,
       // Sends the httpOnly refresh-token cookie to /auth endpoints.
       credentials: "include",

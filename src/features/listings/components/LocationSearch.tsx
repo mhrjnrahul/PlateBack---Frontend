@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { AREAS, DEFAULT_AREA, getCurrentPosition } from "@/shared/lib/areas";
 import { Button } from "@/shared/ui/button";
+import { Select } from "@/shared/ui/select";
 
 /**
  * The landing page's single primary action: choose where you are and go to
@@ -39,23 +40,19 @@ export function LocationSearch() {
         Where are you?
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative flex-1">
-          <MapPin
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <select
+        <div className="flex-1">
+          <Select
             id={selectId}
+            icon={MapPin}
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            className="h-12 w-full cursor-pointer rounded-md border border-input bg-background pr-3 pl-9 text-base"
           >
             {AREAS.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <Button type="submit" size="lg">
           Find food near me

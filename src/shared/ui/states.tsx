@@ -9,13 +9,17 @@ function EmptyState({
   title,
   children,
   action,
+  headingLevel = "h2",
   className,
 }: {
   title: string;
   children?: ReactNode;
   action?: ReactNode;
+  /** h3 when the empty state sits inside a section that has its own h2. */
+  headingLevel?: "h2" | "h3";
   className?: string;
 }) {
+  const Heading = headingLevel;
   return (
     <div
       className={cn(
@@ -24,7 +28,7 @@ function EmptyState({
       )}
     >
       <Inbox aria-hidden="true" className="size-10 text-muted-foreground" />
-      <h2 className="mt-3 text-lg font-semibold">{title}</h2>
+      <Heading className="mt-3 text-lg font-semibold">{title}</Heading>
       {children && <div className="mt-1 max-w-md text-muted-foreground">{children}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -35,7 +39,7 @@ function EmptyState({
 function ErrorState({
   error,
   onRetry,
-  title = "Something went wrong",
+  title = "We couldn't load this",
   className,
 }: {
   error: unknown;
@@ -43,7 +47,7 @@ function ErrorState({
   title?: string;
   className?: string;
 }) {
-  const message = isApiError(error) ? error.message : "Please try again.";
+  const message = isApiError(error) ? error.message : "Check your connection and try again.";
   return (
     <div
       role="alert"

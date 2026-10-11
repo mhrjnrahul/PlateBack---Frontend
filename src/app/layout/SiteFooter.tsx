@@ -1,6 +1,17 @@
 import { Link } from "react-router";
 import { useAuth } from "@/features/auth/session/auth-context";
 import { clearMockStorage } from "@/shared/mocks/storage-keys";
+import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
 import { Logo } from "@/shared/ui/logo";
 import { getFooterNavItems } from "./nav-items";
 
@@ -10,6 +21,39 @@ const mocksOn = import.meta.env.VITE_USE_MOCKS !== "false";
 function resetDemoData() {
   clearMockStorage();
   window.location.assign("/");
+}
+
+/** Quiet entry point for demo-only actions, kept out of the main UI. */
+function DemoTools() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex min-h-11 cursor-pointer items-center underline-offset-4 hover:text-foreground hover:underline md:min-h-0"
+        >
+          Demo tools
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Demo tools</DialogTitle>
+          <DialogDescription>
+            This demo keeps its sample listings, reservations and your sign-in in this browser.
+            Resetting puts everything back to how it started and signs you out.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
+          <Button variant="destructive-outline" onClick={resetDemoData}>
+            Reset demo data
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function SiteFooter() {
@@ -43,18 +87,7 @@ export function SiteFooter() {
       <div className="border-t">
         <div className="page-container flex flex-wrap items-center justify-between gap-2 py-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} PlateBack. Built for the YuvaIntern programme.</p>
-          {mocksOn && (
-            <p>
-              Demo data runs in your browser.{" "}
-              <button
-                type="button"
-                onClick={resetDemoData}
-                className="cursor-pointer font-medium text-primary underline underline-offset-4 hover:no-underline"
-              >
-                Reset demo data
-              </button>
-            </p>
-          )}
+          {mocksOn && <DemoTools />}
         </div>
       </div>
     </footer>

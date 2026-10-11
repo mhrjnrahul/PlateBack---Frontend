@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, ExternalLink, MapPin, TriangleAlert } from "lucide-react";
-import { useState } from "react";
+import {
+  BadgeCheck,
+  Clock,
+  ExternalLink,
+  MapPin,
+  Package,
+  Tag,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import { NotFoundPage } from "@/app/router/NotFoundPage";
 import { isApiError } from "@/shared/api-client/api-error";
@@ -10,6 +19,10 @@ import { ErrorState } from "@/shared/ui/states";
 import { listingQuery } from "../api/listings-api";
 import { ListingImage } from "../components/ListingImage";
 import { ReservePanel } from "../components/ReservePanel";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { formatPickupWindow } from "@/shared/lib/format";
+import { mapSearchUrl } from "@/shared/lib/maps";
+import { PageHeader } from "@/shared/ui/page-header";
 
 /** Announces stock changes from live updates without moving focus (design doc 3.2). */
 function useStockAnnouncement(available: number | undefined) {
@@ -24,6 +37,29 @@ function useStockAnnouncement(available: number | undefined) {
     }
   }
   return message;
+}
+
+/** One entry of the facts list: small label with a 16 px icon, then the value. */
+function Fact({
+  icon: Icon,
+  term,
+  children,
+  className,
+}: {
+  icon: LucideIcon;
+  term: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        {term}
+      </dt>
+      <dd className="mt-0.5 pl-5.5 font-medium">{children}</dd>
+    </div>
+  );
 }
 
 export function ListingDetailPage() {
@@ -47,8 +83,8 @@ export function ListingDetailPage() {
   if (isPending) {
     return (
       <div className="page-container grid gap-8 py-10 lg:grid-cols-[1fr_24rem]" aria-busy="true">
-        <div className="aspect-[16/9] animate-pulse rounded-xl bg-surface" />
-        <div className="h-96 animate-pulse rounded-xl bg-surface" />
+        <Skeleton className="aspect-[4/3] rounded-xl sm:aspect-[16/9]" />
+        <Skeleton className="h-96 rounded-xl" />
         <span className="sr-only" role="status">
           Loading listing
         </span>
@@ -56,7 +92,7 @@ export function ListingDetailPage() {
     );
   }
 
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${listing.latitude},${listing.longitude}`;
+  const mapsUrl = mapSearchUrl(listing.latitude, listing.longitude);
 
   return (
     <div className="page-container py-8 md:py-10">
@@ -74,47 +110,69 @@ export function ListingDetailPage() {
         </ol>
       </nav>
 
-      <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_24rem]">
+      {/* Mobile order: image and title, reserve panel, details. From lg the
+          panel moves to a sticky right column spanning both rows. */}
+      <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_24rem] lg:grid-rows-[auto_1fr] lg:gap-x-8">
         <div className="min-w-0 space-y-6">
           <ListingImage
             category={listing.category}
             imageUrl={listing.imageUrl}
-            className="aspect-[16/9] w-full rounded-xl"
+            className="aspect-[4/3] w-full rounded-xl sm:aspect-[16/9]"
           />
 
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{listing.category}</Badge>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">{listing.title}</h1>
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="font-semibold">{listing.organization.name}</span>
-              {listing.organization.isVerified && (
-                <Badge variant="success">
-                  <BadgeCheck aria-hidden="true" />
-                  Verified business
-                </Badge>
-              )}
-            </p>
-            <p className="flex items-start gap-1.5 text-muted-foreground">
-              <MapPin aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-              <span>
-                {listing.address} ·{" "}
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-4 hover:no-underline"
-                >
-                  Open in maps
-                  <ExternalLink aria-hidden="true" className="size-3.5" />{" "}
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
+          <PageHeader
+            title={listing.title}
+            description={
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="font-semibold text-foreground">{listing.organization.name}</span>
+                {listing.organization.isVerified && (
+                  <Badge variant="success">
+                    <BadgeCheck aria-hidden="true" />
+                    Verified business
+                  </Badge>
+                )}
               </span>
-            </p>
-          </div>
+            }
+          />
+        </div>
 
+        <aside
+          aria-label="Reserve"
+          className="lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start"
+        >
+          <ReservePanel listing={listing} />
+        </aside>
+
+        <div className="min-w-0 space-y-6">
           {listing.description && <p className="max-w-2xl text-lg">{listing.description}</p>}
+
+          <dl className="grid max-w-2xl gap-x-8 gap-y-4 sm:grid-cols-2">
+            <Fact icon={Clock} term="Pickup">
+              {formatPickupWindow(listing.pickupStart, listing.pickupEnd)}
+            </Fact>
+            <Fact icon={Package} term="Left">
+              {listing.quantityAvailable === 0
+                ? "Sold out"
+                : `${listing.quantityAvailable} of ${listing.quantityTotal}`}
+              {" · "}up to {listing.maxPerUser} per person
+            </Fact>
+            <Fact icon={MapPin} term="Where" className="sm:col-span-2">
+              {listing.address} ·{" "}
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-4 hover:no-underline"
+              >
+                Open in maps
+                <ExternalLink aria-hidden="true" className="size-3.5" />{" "}
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </Fact>
+            <Fact icon={Tag} term="Category">
+              {listing.category}
+            </Fact>
+          </dl>
 
           {/* Always shown, in a highlighted block (wireframe 3, note 2) */}
           <section
@@ -132,10 +190,6 @@ export function ListingDetailPage() {
             </p>
           </section>
         </div>
-
-        <aside aria-label="Reserve" className="lg:sticky lg:top-24 lg:self-start">
-          <ReservePanel listing={listing} />
-        </aside>
       </div>
 
       <p role="status" aria-live="polite" className="sr-only">

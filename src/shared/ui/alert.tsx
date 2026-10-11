@@ -4,12 +4,12 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/lib/utils";
 
 const alertVariants = cva(
-  "flex gap-3 rounded-lg border p-4 text-sm [&_svg]:mt-0.5 [&_svg]:size-5 [&_svg]:shrink-0",
+  "flex gap-3 rounded-md border p-4 text-sm [&_svg]:mt-0.5 [&_svg]:size-5 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         info: "border-border bg-surface text-foreground",
-        success: "border-primary/30 bg-primary-tint text-foreground [&_svg]:text-primary",
+        success: "border-primary/30 bg-success-tint text-foreground [&_svg]:text-primary",
         warning: "border-highlight/40 bg-highlight-tint text-foreground [&_svg]:text-urgency",
         danger:
           "border-destructive/30 bg-destructive-tint text-foreground [&_svg]:text-destructive",
