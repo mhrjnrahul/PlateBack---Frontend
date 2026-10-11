@@ -50,4 +50,14 @@ describe("BrowsePage", () => {
     await user.click(screen.getByRole("button", { name: "Search within 25 km" }));
     expect(await resultsHeading()).toHaveTextContent("within 25 km of Bhaktapur");
   });
+
+  it("shows active filters as chips that remove themselves", async () => {
+    const { user, router } = await renderApp("/browse?radius=25&category=Meals&time=tonight");
+    await resultsHeading();
+    await user.click(screen.getByRole("button", { name: "Remove filter: Meals" }));
+    await waitFor(() => expect(router.state.location.search).not.toContain("category"));
+    expect(router.state.location.search).toContain("time=tonight");
+    await user.click(screen.getByRole("button", { name: "Clear all" }));
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+  });
 });

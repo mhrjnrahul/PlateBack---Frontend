@@ -13,13 +13,13 @@ export function RouteErrorPage() {
 
   const title = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText}`
-    : "Something went wrong";
+    : "This page broke";
 
   return (
     <div role="alert" className="page-container py-16 text-center md:py-24">
-      <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      <h1 className="font-display text-3xl font-semibold tracking-tight">{title}</h1>
       <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-        This page could not be shown. Reloading usually fixes it.
+        Something on our side stopped this page from loading. Reloading usually fixes it.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Button onClick={() => window.location.reload()}>Reload page</Button>

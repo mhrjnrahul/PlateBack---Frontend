@@ -13,15 +13,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { toast } from "@/shared/ui/toaster";
 import { getAccountMenuItems } from "./nav-items";
-
-function initials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
+import { initials } from "@/shared/lib/people";
 
 /** Avatar button that opens the account menu. */
 export function AccountMenu({ user }: { user: CurrentUser }) {
@@ -37,14 +29,12 @@ export function AccountMenu({ user }: { user: CurrentUser }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="gap-1 px-1.5"
-          aria-label={`Account menu for ${user.displayName}`}
-        >
+        {/* Named by hidden text, not aria-label: the visible initials are decorative */}
+        <Button variant="ghost" className="gap-1 px-1.5">
+          <span className="sr-only">Account menu for {user.displayName}</span>
           <span
             aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-full bg-primary-tint text-sm font-semibold text-primary"
+            className="flex size-8 items-center justify-center rounded-full bg-surface text-sm font-semibold text-foreground ring-1 ring-border"
           >
             {initials(user.displayName)}
           </span>

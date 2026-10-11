@@ -10,6 +10,8 @@ import { EmptyState, ErrorState } from "@/shared/ui/states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { adminOrganizationsQuery } from "../api/admin-api";
 import { ReviewPanel } from "../components/ReviewPanel";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 const STATUSES: OrganizationStatus[] = ["Pending", "Verified", "Suspended", "Rejected"];
 
@@ -32,10 +34,10 @@ export function AdminOrganizationsPage() {
 
   return (
     <div className="page-container py-8 md:py-10">
-      <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
-      <p className="mt-1 text-muted-foreground">
-        Every decision is recorded in the audit log and sent to the owner.
-      </p>
+      <PageHeader
+        title="Organizations"
+        description="Every decision is recorded in the audit log and sent to the owner."
+      />
 
       <Tabs value={status} onValueChange={changeTab} className="mt-6">
         <TabsList aria-label="Organization status">
@@ -58,7 +60,7 @@ export function AdminOrganizationsPage() {
             {s !== status ? null : list.isError ? (
               <ErrorState error={list.error} onRetry={() => void list.refetch()} />
             ) : list.isPending ? (
-              <div className="h-64 animate-pulse rounded-xl bg-surface" aria-hidden="true" />
+              <Skeleton className="h-64 rounded-xl" />
             ) : list.data.items.length === 0 ? (
               <EmptyState
                 title={s === "Pending" ? "The queue is empty" : `No ${s.toLowerCase()} businesses`}
@@ -72,34 +74,34 @@ export function AdminOrganizationsPage() {
                     <caption className="sr-only">{s} businesses</caption>
                     <thead className="border-b bg-surface text-left text-muted-foreground">
                       <tr>
-                        <th scope="col" className="px-4 py-3 font-medium">
+                        <th scope="col" className="px-4 py-2.5 font-medium">
                           Business
                         </th>
-                        <th scope="col" className="px-4 py-3 font-medium">
+                        <th scope="col" className="px-4 py-2.5 font-medium">
                           Owner
                         </th>
-                        <th scope="col" className="px-4 py-3 font-medium">
+                        <th scope="col" className="px-4 py-2.5 font-medium">
                           Submitted
                         </th>
-                        <th scope="col" className="px-4 py-3 font-medium">
+                        <th scope="col" className="px-4 py-2.5 font-medium">
                           <span className="sr-only">Action</span>
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {list.data.items.map((org) => (
-                        <tr key={org.id} className={cn(org.id === selectedId && "bg-primary-tint")}>
-                          <th scope="row" className="px-4 py-3 text-left">
+                        <tr key={org.id} className={cn(org.id === selectedId && "bg-selected")}>
+                          <th scope="row" className="px-4 py-2.5 text-left">
                             <span className="block font-semibold">{org.name}</span>
                             <span className="block font-normal text-muted-foreground">
                               {org.address}
                             </span>
                           </th>
-                          <td className="px-4 py-3">{org.ownerName}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-4 py-2.5">{org.ownerName}</td>
+                          <td className="px-4 py-2.5 whitespace-nowrap">
                             {formatRelative(org.createdAt)}
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-2.5 text-right">
                             <Button
                               variant={org.id === selectedId ? "secondary" : "outline"}
                               size="sm"

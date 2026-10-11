@@ -36,18 +36,18 @@ export function CancelReservationButton({ reservation }: { reservation: Reservat
         await reloadUser();
       },
       onError: (error) =>
-        toast.error(isApiError(error) ? error.message : "Could not cancel. Please try again."),
+        toast.error(
+          isApiError(error)
+            ? error.message
+            : "We couldn't cancel it. Check your connection and try again.",
+        ),
     });
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="border-destructive text-destructive hover:bg-destructive-tint"
-          disabled={cancel.isPending}
-        >
+        <Button variant="destructive-outline" disabled={cancel.isPending}>
           {cancel.isPending ? "Cancelling…" : "Cancel"}
         </Button>
       </AlertDialogTrigger>

@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { AREAS } from "@/shared/lib/areas";
 import { cn } from "@/shared/lib/utils";
+import { Select } from "@/shared/ui/select";
 import {
   CATEGORIES,
   PRICE_OPTIONS,
@@ -8,9 +9,6 @@ import {
   TIME_OPTIONS,
   type BrowseFilters,
 } from "../browse-filters";
-
-const selectClass =
-  "h-11 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-base md:h-10 md:text-sm";
 
 /** A set of radio buttons styled as chips (keyboard: arrow keys move between them). */
 function ChipGroup<T extends string>({
@@ -45,7 +43,7 @@ function ChipGroup<T extends string>({
                 "inline-flex min-h-9 items-center rounded-full border px-3 text-sm font-medium transition-colors",
                 "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring",
                 value === option.value
-                  ? "border-primary bg-primary-tint text-primary"
+                  ? "border-primary bg-selected text-primary"
                   : "border-input bg-background hover:bg-accent",
               )}
             >
@@ -76,9 +74,8 @@ export function BrowseFilterPanel({
           <label htmlFor={`${id}-area`} className="text-sm font-semibold">
             Location
           </label>
-          <select
+          <Select
             id={`${id}-area`}
-            className={selectClass}
             value={usingMyLocation ? "me" : filters.area}
             onChange={(e) =>
               e.target.value !== "me" && onChange({ area: e.target.value, lat: null, lng: null })
@@ -90,15 +87,14 @@ export function BrowseFilterPanel({
                 {a.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <label htmlFor={`${id}-radius`} className="text-sm font-semibold">
             Distance
           </label>
-          <select
+          <Select
             id={`${id}-radius`}
-            className={selectClass}
             value={filters.radiusKm}
             onChange={(e) => onChange({ radiusKm: Number(e.target.value) })}
           >
@@ -107,7 +103,7 @@ export function BrowseFilterPanel({
                 Within {r} km
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -131,9 +127,8 @@ export function BrowseFilterPanel({
         <label htmlFor={`${id}-price`} className="text-sm font-semibold">
           Max price
         </label>
-        <select
+        <Select
           id={`${id}-price`}
-          className={selectClass}
           value={filters.maxPrice}
           onChange={(e) => onChange({ maxPrice: e.target.value })}
         >
@@ -142,7 +137,7 @@ export function BrowseFilterPanel({
               {o.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );

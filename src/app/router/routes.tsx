@@ -79,6 +79,13 @@ export const routes: RouteObject[] = [
                 }),
               },
               {
+                path: "org/:orgId/pickup",
+                lazy: async () => ({
+                  Component: (await import("@/features/organizations/pages/OrgPickupPage"))
+                    .OrgPickupPage,
+                }),
+              },
+              {
                 path: "org/:orgId/listings/new",
                 lazy: async () => ({
                   Component: (await import("@/features/listings/pages/CreateListingPage"))

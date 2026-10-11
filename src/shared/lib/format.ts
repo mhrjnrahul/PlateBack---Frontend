@@ -1,22 +1,11 @@
 /*
- * Display formatting. Times are shown in the browser's time zone; the
+ * Display formatting for time and distance (money is in money.ts). Times are shown in the browser's time zone; the
  * backend (Week 3) stores UTC and the organization's time zone.
  */
 
-const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" });
 const dayMonth = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short" });
-
-/** 4.5 -> "$4.50", 0 -> "Free". */
-export function formatPrice(amount: number) {
-  return amount === 0 ? "Free" : currency.format(amount);
-}
-
-/** Percentage saved, rounded down: (12, 4.5) -> 62. */
-export function discountPercent(originalPrice: number, price: number) {
-  return originalPrice > 0 ? Math.floor(((originalPrice - price) / originalPrice) * 100) : 0;
-}
 
 function startOfDay(date: Date) {
   const d = new Date(date);

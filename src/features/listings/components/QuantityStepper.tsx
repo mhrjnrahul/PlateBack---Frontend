@@ -1,5 +1,6 @@
 import { Minus, Plus } from "lucide-react";
 import { useId } from "react";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 /** − [n] + control. The buttons are labelled; the value is announced when it changes. */
@@ -9,17 +10,20 @@ export function QuantityStepper({
   onChange,
   disabled,
   hint,
+  compact = false,
 }: {
   value: number;
   max: number;
   onChange: (value: number) => void;
   disabled?: boolean;
   hint?: string;
+  /** Label kept for screen readers only, no hint (mobile reserve bar). */
+  compact?: boolean;
 }) {
   const id = useId();
   return (
-    <div className="space-y-1.5">
-      <span id={`${id}-label`} className="text-sm font-semibold">
+    <div className={compact ? undefined : "space-y-1.5"}>
+      <span id={`${id}-label`} className={compact ? "sr-only" : "text-sm font-semibold"}>
         Quantity
       </span>
       <div className="flex items-center gap-3">
@@ -37,8 +41,11 @@ export function QuantityStepper({
           <output
             aria-labelledby={`${id}-label`}
             aria-live="polite"
-            aria-describedby={hint ? `${id}-hint` : undefined}
-            className="flex h-11 w-14 items-center justify-center rounded-md border border-input text-lg font-semibold tabular-nums md:h-10"
+            aria-describedby={hint && !compact ? `${id}-hint` : undefined}
+            className={cn(
+              "flex h-11 items-center justify-center rounded-md border border-input text-lg font-semibold tabular-nums md:h-10",
+              compact ? "w-10" : "w-14",
+            )}
           >
             {value}
           </output>
@@ -53,7 +60,7 @@ export function QuantityStepper({
             <Plus aria-hidden="true" />
           </Button>
         </div>
-        {hint && (
+        {hint && !compact && (
           <p id={`${id}-hint`} className="text-sm text-muted-foreground">
             {hint}
           </p>

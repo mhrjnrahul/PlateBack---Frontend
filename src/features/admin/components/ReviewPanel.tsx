@@ -111,8 +111,7 @@ export function ReviewPanel({ org, onDone }: { org: OrganizationReviewItem; onDo
         )}
         {org.status === "Pending" && (
           <Button
-            variant="outline"
-            className="border-destructive text-destructive hover:bg-destructive-tint"
+            variant="destructive-outline"
             onClick={() => submit("reject")}
             disabled={decide.isPending}
           >
@@ -121,8 +120,7 @@ export function ReviewPanel({ org, onDone }: { org: OrganizationReviewItem; onDo
         )}
         {org.status === "Verified" && (
           <Button
-            variant="outline"
-            className="border-destructive text-destructive hover:bg-destructive-tint"
+            variant="destructive-outline"
             onClick={() => submit("suspend")}
             disabled={decide.isPending}
           >

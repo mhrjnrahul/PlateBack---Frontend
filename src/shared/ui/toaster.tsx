@@ -13,8 +13,8 @@ function Toaster(props: ToasterProps) {
     <Sonner
       position="bottom-right"
       closeButton
-      // keep toasts clear of the mobile bottom tab bar
-      mobileOffset={{ bottom: 80 }}
+      // keep toasts clear of the tab bar and reserve bar (index.css)
+      mobileOffset={{ bottom: "calc(var(--tab-bar) + var(--bottom-bar) + 16px)" }}
       style={
         {
           "--normal-bg": "var(--popover)",

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useNow } from "@/shared/hooks/use-now";
@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/ui/sheet
 import { EmptyState, ErrorState } from "@/shared/ui/states";
 import { listingsQuery } from "../api/listings-api";
 import {
+  activeFilters,
   locationLabel,
   readFilters,
   SORT_OPTIONS,
@@ -20,8 +21,14 @@ import {
 import { BrowseFilterPanel } from "../components/BrowseFilterPanel";
 import { ListingCard, ListingCardSkeleton } from "../components/ListingCard";
 import { Pagination } from "../components/Pagination";
+import { Select } from "@/shared/ui/select";
+import { LiveDot } from "@/shared/ui/live-dot";
+import { PageHeader } from "@/shared/ui/page-header";
 
 const PAGE_SIZE = 12;
+
+/** Everything the chips can remove; location and sort stay. */
+const clearAll = { q: "", category: "", time: "", maxPrice: "", radiusKm: 5, page: 1 } as const;
 
 /** The customer dashboard: find a suitable nearby listing in a few seconds (wireframe 2). */
 export function BrowsePage() {
@@ -67,13 +74,23 @@ export function BrowsePage() {
   const resultText = data
     ? `${data.total} ${data.total === 1 ? "listing" : "listings"} within ${filters.radiusKm} km of ${locationLabel(filters)}`
     : "Loading listings";
-  const activeFilterCount = [filters.category, filters.maxPrice, filters.time].filter(
-    Boolean,
-  ).length;
+  const chips = activeFilters(filters);
+  const activeFilterCount = chips.filter((c) => c.key !== "q").length;
 
   return (
     <div className="page-container py-8 md:py-10">
-      <h1 className="text-3xl font-bold tracking-tight">Browse listings</h1>
+      <PageHeader title="Browse listings" />
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+        {/* The results heading doubles as the count; announced politely when it changes */}
+        <h2
+          id={`${id}-results`}
+          aria-live="polite"
+          className="text-base font-normal text-muted-foreground"
+        >
+          {resultText}
+        </h2>
+        <LiveDot detail="stock updates every 15 seconds" />
+      </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="relative flex-1">
@@ -97,18 +114,19 @@ export function BrowsePage() {
           <label htmlFor={`${id}-sort`} className="sr-only">
             Sort by
           </label>
-          <select
-            id={`${id}-sort`}
-            value={filters.sort}
-            onChange={(e) => update({ sort: e.target.value as BrowseFilters["sort"] })}
-            className="h-11 flex-1 cursor-pointer rounded-md border border-input bg-background px-3 text-base md:h-10 md:text-sm"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1">
+            <Select
+              id={`${id}-sort`}
+              value={filters.sort}
+              onChange={(e) => update({ sort: e.target.value as BrowseFilters["sort"] })}
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+          </div>
           {/* Filters become a bottom sheet below md (design doc 3.2) */}
           <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
             <SheetTrigger asChild>
@@ -136,7 +154,34 @@ export function BrowsePage() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-8 md:grid-cols-[16rem_1fr]">
+      {chips.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="sr-only">Active filters:</span>
+          {chips.map((chip) => (
+            <Button
+              key={chip.key}
+              variant="secondary"
+              size="sm"
+              className="rounded-full"
+              onClick={() => update(chip.clear)}
+              aria-label={`Remove filter: ${chip.label}`}
+            >
+              {chip.label}
+              <X aria-hidden="true" />
+            </Button>
+          ))}
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto px-1"
+            onClick={() => setSearchParams(writeFilters({ ...filters, ...clearAll }))}
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
+
+      <div className="mt-6 grid gap-8 md:grid-cols-[16rem_1fr]">
         <aside aria-label="Filters" className="hidden md:block">
           <div className="sticky top-24 space-y-4 rounded-xl border p-5">
             <div className="flex items-center justify-between">
@@ -155,17 +200,6 @@ export function BrowsePage() {
         </aside>
 
         <section aria-labelledby={`${id}-results`} className="min-w-0 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {/* Announced politely when the results change */}
-            <h2 id={`${id}-results`} aria-live="polite" className="text-lg font-semibold">
-              {resultText}
-            </h2>
-            <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-              <span aria-hidden="true" className="size-2 rounded-full bg-primary" />
-              Live: stock updates every 15 s
-            </p>
-          </div>
-
           {isError ? (
             <ErrorState
               error={error}
@@ -173,7 +207,7 @@ export function BrowsePage() {
               title="Could not load listings"
             />
           ) : isPending ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }, (_, i) => (
                 <ListingCardSkeleton key={i} />
               ))}
@@ -194,7 +228,7 @@ export function BrowsePage() {
             </EmptyState>
           ) : (
             <div className={isFetching ? "opacity-70 transition-opacity" : undefined}>
-              <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {data.items.map((listing) => (
                   <li key={listing.id} className="grid">
                     <ListingCard listing={listing} />

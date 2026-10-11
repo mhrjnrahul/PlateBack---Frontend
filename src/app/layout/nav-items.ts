@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   LayoutDashboard,
   PlusCircle,
+  ScanLine,
   Search,
   ShieldCheck,
   type LucideIcon,
@@ -37,6 +38,7 @@ export function getMainNavItems(user: CurrentUser | null): NavItem[] {
     case "business":
       return [
         { label: "Dashboard", to: `/org/${orgId}` },
+        { label: "Pickup", to: `/org/${orgId}/pickup` },
         { label: "New listing", to: `/org/${orgId}/listings/new` },
         { label: "Browse", to: "/browse" },
       ];
@@ -57,7 +59,11 @@ export function getAccountMenuItems(user: CurrentUser): NavItem[] {
   ];
   switch (getNavRole(user)) {
     case "business":
-      return [{ label: "Business dashboard", to: `/org/${orgId}` }, ...common];
+      return [
+        { label: "Business dashboard", to: `/org/${orgId}` },
+        { label: "Pickup counter", to: `/org/${orgId}/pickup` },
+        ...common,
+      ];
     case "admin":
       return [
         { label: "Organizations", to: "/admin/organizations" },
@@ -96,6 +102,7 @@ export function getTabItems(user: CurrentUser | null): TabItem[] {
     case "business":
       return [
         { label: "Dashboard", to: `/org/${orgId}`, icon: LayoutDashboard },
+        { label: "Pickup", to: `/org/${orgId}/pickup`, icon: ScanLine },
         { label: "New listing", to: `/org/${orgId}/listings/new`, icon: PlusCircle },
         { label: "Browse", to: "/browse", icon: Search },
       ];

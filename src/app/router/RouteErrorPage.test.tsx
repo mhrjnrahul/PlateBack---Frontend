@@ -23,7 +23,7 @@ describe("RouteErrorPage", () => {
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "This page broke" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reload page" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Go home" })).toHaveAttribute("href", "/");
     expect(document.title).toBe("Error | PlateBack");

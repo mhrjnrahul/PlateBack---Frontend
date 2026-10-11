@@ -15,8 +15,11 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         destructive: "bg-destructive text-destructive-foreground hover:brightness-90",
-        outline: "border border-primary bg-background text-primary hover:bg-primary-tint",
-        secondary: "bg-primary-tint text-primary hover:bg-primary-tint/70",
+        outline: "border border-primary bg-background text-primary hover:bg-selected",
+        // Cancel / reject / suspend: destructive, but not the main action on the screen
+        "destructive-outline":
+          "border border-destructive bg-background text-destructive hover:bg-destructive-tint",
+        secondary: "bg-selected text-primary hover:bg-selected/70",
         ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline underline-offset-4 hover:no-underline",
       },

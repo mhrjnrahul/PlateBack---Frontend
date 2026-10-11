@@ -20,7 +20,7 @@ export function SkipLink() {
     <a
       href={`#${MAIN_ID}`}
       onClick={handleClick}
-      className="sr-only rounded-md bg-primary font-semibold text-primary-foreground shadow-lg focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2"
+      className="sr-only rounded-md bg-primary font-semibold text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2"
     >
       Skip to main content
     </a>
