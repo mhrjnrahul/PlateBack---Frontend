@@ -39,6 +39,8 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 
 Requirements: **Node.js 22.22 or newer** (developed on Node 24; see `.nvmrc`) and npm.
 
+If you cloned the repository, run these inside the `frontend/` folder.
+
 ```bash
 npm ci            # install the exact versions from package-lock.json
 npm run dev       # start the dev server, then open the URL it prints
