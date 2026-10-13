@@ -31,10 +31,8 @@ pnpm-debug.log*
 .vite/
 .vitest/
 
-# Editors (share only the recommended settings)
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+# Editors
+.vscode/
 .idea/
 *.swp
 *.swo
