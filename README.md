@@ -33,6 +33,7 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 | Modular, documented code following current best practices        | Feature folders, typed API layer, lint, format and type checks ([Project structure](#project-structure), [Design patterns](#design-patterns))                          |
 | Accessibility                                                    | WCAG 2.1 AA target; Lighthouse accessibility 100 and no axe violations ([Accessibility](#accessibility))                                                               |
 | README: process, patterns, libraries, how to run                 | [Development process](#development-process), [Design patterns](#design-patterns), [Tech stack](#tech-stack), [Run it locally](#run-it-locally)                         |
+| Work period of about 30–35 hours                                 | About 30–35 hours ([Development process](#development-process))                                                                                                        |
 
 ## Run it locally
 
@@ -241,6 +242,8 @@ npm run test:run   # 119 tests in 23 files
 Requests to anything that is not mocked fail the test, and the mock data resets after every test.
 
 ## Development process
+
+The frontend took about 30–35 hours of work, within the time set for the Week 2 task.
 
 1. **Week 1 design.** The design document (project brief, flows, wireframes, architecture, API) defines the screens, tokens, routes and API contract used here.
 2. **Small, reviewed steps.** Setup, design tokens and the app shell, then the mock API, then one page at a time, then login. Every step ran lint, type check, formatting, tests and the build before moving on.
