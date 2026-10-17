@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { isApiError } from "@/shared/api-client/api-error";
 import { setAccessTokenProvider, setTokenRefresher } from "@/shared/api-client/client";
 import type { AuthResponse, CurrentUser, LoginRequest, RegisterRequest } from "@/shared/types/api";
 import { authApi } from "../api/auth-api";
@@ -35,6 +36,25 @@ function hasSessionHint() {
   }
 }
 
+/**
+ * One refresh at a time. The refresh token rotates on every use, so two calls
+ * sent with the same cookie (React's double mount in development, or several
+ * requests whose access token expired together) would look like a stolen
+ * token to the API. Callers that arrive while one is running share it.
+ */
+let refreshing: Promise<AuthResponse> | null = null;
+function refreshSession() {
+  refreshing ??= authApi.refresh().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+/** Only the API saying no (401) ends the session; a failed connection does not. */
+function sessionEnded(error: unknown) {
+  return isApiError(error) && error.status === 401;
+}
+
 type State = { status: AuthStatus; user: CurrentUser | null };
 type SetState = (state: State) => void;
 
@@ -66,21 +86,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     if (hasSessionHint()) {
-      authApi
-        .refresh()
+      refreshSession()
         .then((auth) => active && signIn(auth, setState))
-        .catch(() => {
-          setSessionHint(false);
+        .catch((error: unknown) => {
+          // Keep the hint after a network failure (offline, API restarting,
+          // or the page reloading mid-request): the next load tries again.
+          if (sessionEnded(error)) setSessionHint(false);
           if (active) setState({ status: "anonymous", user: null });
         });
     }
 
     setTokenRefresher(async () => {
       try {
-        signIn(await authApi.refresh(), setState);
+        signIn(await refreshSession(), setState);
         return true;
-      } catch {
-        signOutLocally();
+      } catch (error) {
+        if (sessionEnded(error)) signOutLocally();
         return false;
       }
     });
