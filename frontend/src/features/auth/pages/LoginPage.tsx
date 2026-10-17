@@ -12,7 +12,7 @@ import { loginSchema, safeRedirect, type LoginValues } from "../schemas/auth-for
 import { homeFor, useAuth } from "../session/auth-context";
 import { PageHeader } from "@/shared/ui/page-header";
 
-const mocksOn = import.meta.env.VITE_USE_MOCKS !== "false";
+const mocksOn = import.meta.env.VITE_USE_MOCKS === "true";
 
 export function LoginPage() {
   usePageTitle("Log in");

@@ -15,7 +15,7 @@ import {
 import { Logo } from "@/shared/ui/logo";
 import { getFooterNavItems } from "./nav-items";
 
-const mocksOn = import.meta.env.VITE_USE_MOCKS !== "false";
+const mocksOn = import.meta.env.VITE_USE_MOCKS === "true";
 
 /** Clears demo changes and the demo login, then starts again from the seed data. */
 function resetDemoData() {

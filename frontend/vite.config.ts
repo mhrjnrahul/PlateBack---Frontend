@@ -11,6 +11,15 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  server: {
+    // The real API (VITE_USE_MOCKS=false) runs on its own port. Proxying keeps
+    // the browser on one origin, so the SameSite=Strict refresh cookie works
+    // and no CORS preflight is needed. /uploads serves listing photos.
+    proxy: {
+      "/api": process.env.API_PROXY_TARGET ?? "http://localhost:5080",
+      "/uploads": process.env.API_PROXY_TARGET ?? "http://localhost:5080",
+    },
+  },
   build: {
     rolldownOptions: {
       output: {
@@ -50,6 +59,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Tests always use the mock API (MSW in Node), whatever the local .env says.
+    env: { VITE_USE_MOCKS: "true" },
     setupFiles: ["./src/test/setup.ts"],
     // Full-app tests type into whole forms; 5 s is too tight on slower machines.
     testTimeout: 15_000,
