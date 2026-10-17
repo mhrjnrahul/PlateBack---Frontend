@@ -22,6 +22,7 @@ import { BrowseFilterPanel } from "../components/BrowseFilterPanel";
 import { ListingCard, ListingCardSkeleton } from "../components/ListingCard";
 import { Pagination } from "../components/Pagination";
 import { Select } from "@/shared/ui/select";
+import { useLiveConnected } from "@/shared/live/live-status";
 import { LiveDot } from "@/shared/ui/live-dot";
 import { PageHeader } from "@/shared/ui/page-header";
 
@@ -34,6 +35,7 @@ const clearAll = { q: "", category: "", time: "", maxPrice: "", radiusKm: 5, pag
 export function BrowsePage() {
   usePageTitle("Browse listings");
   const id = useId();
+  const live = useLiveConnected();
   const [searchParams, setSearchParams] = useSearchParams();
   const paramString = searchParams.toString();
   const filters = useMemo(() => readFilters(new URLSearchParams(paramString)), [paramString]);
@@ -89,7 +91,7 @@ export function BrowsePage() {
         >
           {resultText}
         </h2>
-        <LiveDot detail="stock updates every 15 seconds" />
+        <LiveDot detail={live ? "stock updates instantly" : "stock updates every 15 seconds"} />
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">

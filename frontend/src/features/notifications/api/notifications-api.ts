@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/shared/api-client/client";
+import { livePollInterval } from "@/shared/live/live-status";
 import type { NotificationPage } from "@/shared/types/api";
 
 export const notificationKeys = {
@@ -7,13 +8,13 @@ export const notificationKeys = {
   list: (pageSize: number) => [...notificationKeys.all, pageSize] as const,
 };
 
-/** Notifications arrive through the outbox (decision D11); polled every 30 s. */
+/** Notifications arrive through the outbox (decision D11) and are pushed over SignalR; polled every 30 s without it. */
 export function notificationsQuery(pageSize = 20) {
   return queryOptions({
     queryKey: notificationKeys.list(pageSize),
     queryFn: ({ signal }) =>
       api.get<NotificationPage>("/notifications", { query: { pageSize }, signal }),
-    refetchInterval: 30_000,
+    refetchInterval: () => livePollInterval(30_000),
   });
 }
 

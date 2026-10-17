@@ -1,5 +1,6 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/shared/api-client/client";
+import { livePollInterval } from "@/shared/live/live-status";
 import type {
   ImageUpload,
   ImpactStats,
@@ -17,7 +18,10 @@ export const listingKeys = {
   impact: ["stats", "impact"] as const,
 };
 
-/** Live stock is polled while a page is open (the polling fallback of decision D12). */
+/**
+ * Stock is pushed over SignalR (decision D12); polling every 15 seconds is the
+ * fallback while there is no connection.
+ */
 export const LIVE_REFRESH_MS = 15_000;
 
 export function listingsQuery(params: ListingSearchParams) {
@@ -26,7 +30,7 @@ export function listingsQuery(params: ListingSearchParams) {
     queryFn: ({ signal }) => api.get<Page<ListingSummary>>("/listings", { query: params, signal }),
     // Keep showing the old results while new filters load (no flash of empty).
     placeholderData: keepPreviousData,
-    refetchInterval: LIVE_REFRESH_MS,
+    refetchInterval: () => livePollInterval(LIVE_REFRESH_MS),
   });
 }
 
@@ -34,7 +38,7 @@ export function listingQuery(id: string) {
   return queryOptions({
     queryKey: listingKeys.detail(id),
     queryFn: ({ signal }) => api.get<ListingDetail>(`/listings/${id}`, { signal }),
-    refetchInterval: LIVE_REFRESH_MS,
+    refetchInterval: () => livePollInterval(LIVE_REFRESH_MS),
   });
 }
 

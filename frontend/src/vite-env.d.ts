@@ -5,8 +5,10 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   /** Currency symbol shown before amounts. Default "Rs". */
   readonly VITE_CURRENCY_SYMBOL?: string;
-  /** "false" turns off the in-browser mock API (MSW); any other value or unset keeps it on. */
+  /** "true" runs the in-browser mock API (MSW) instead of the real one. Default off. */
   readonly VITE_USE_MOCKS?: string;
+  /** URL of the API's SignalR hub. Default "/hubs/live". */
+  readonly VITE_LIVE_HUB_URL?: string;
 }
 
 interface ImportMeta {

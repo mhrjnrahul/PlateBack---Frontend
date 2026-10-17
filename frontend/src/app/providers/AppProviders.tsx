@@ -3,9 +3,10 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, type ReactNode } from "react";
 import { AuthProvider } from "@/features/auth/session/AuthProvider";
 import { Toaster } from "@/shared/ui/toaster";
+import { LiveUpdates } from "./LiveUpdates";
 import { createQueryClient } from "./query-client";
 
-/** Everything the app needs around the router: server-state cache, signed-in user and toasts. */
+/** Everything the app needs around the router: server-state cache, signed-in user, live updates and toasts. */
 export function AppProviders({
   children,
   queryClient: providedClient,
@@ -19,7 +20,10 @@ export function AppProviders({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <LiveUpdates />
+        {children}
+      </AuthProvider>
       <Toaster />
       {/* Only included in development builds */}
       <ReactQueryDevtools buttonPosition="bottom-left" />

@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:5080";
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -12,12 +14,14 @@ export default defineConfig({
     },
   },
   server: {
-    // The real API (VITE_USE_MOCKS=false) runs on its own port. Proxying keeps
-    // the browser on one origin, so the SameSite=Strict refresh cookie works
-    // and no CORS preflight is needed. /uploads serves listing photos.
+    // The real API runs on its own port. Proxying keeps the browser on one
+    // origin, so the SameSite=Strict refresh cookie works and no CORS
+    // preflight is needed. /uploads serves listing photos and /hubs is the
+    // SignalR hub, which needs WebSocket upgrades passed through.
     proxy: {
-      "/api": process.env.API_PROXY_TARGET ?? "http://localhost:5080",
-      "/uploads": process.env.API_PROXY_TARGET ?? "http://localhost:5080",
+      "/api": apiTarget,
+      "/uploads": apiTarget,
+      "/hubs": { target: apiTarget, ws: true },
     },
   },
   build: {

@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listingKeys } from "@/features/listings/api/listings-api";
 import { api } from "@/shared/api-client/client";
+import { livePollInterval } from "@/shared/live/live-status";
 import type {
   CreateOrganizationRequest,
   ListingDetail,
@@ -33,7 +34,7 @@ export function organizationStatsQuery(id: string) {
   return queryOptions({
     queryKey: organizationKeys.stats(id),
     queryFn: ({ signal }) => api.get<OrganizationStats>(`/organizations/${id}/stats`, { signal }),
-    refetchInterval: LIVE_MS,
+    refetchInterval: () => livePollInterval(LIVE_MS),
   });
 }
 
@@ -45,7 +46,7 @@ export function organizationListingsQuery(id: string) {
         query: { pageSize: 50 },
         signal,
       }),
-    refetchInterval: LIVE_MS,
+    refetchInterval: () => livePollInterval(LIVE_MS),
   });
 }
 
@@ -57,7 +58,7 @@ export function organizationReservationsQuery(id: string) {
         query: { pageSize: 50 },
         signal,
       }),
-    refetchInterval: LIVE_MS,
+    refetchInterval: () => livePollInterval(LIVE_MS),
   });
 }
 

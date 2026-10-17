@@ -22,6 +22,11 @@ export function setAccessTokenProvider(provider: () => string | null) {
   getAccessToken = provider;
 }
 
+/** The current access token, for connections that are not plain fetches (SignalR). */
+export function currentAccessToken() {
+  return getAccessToken();
+}
+
 /**
  * Called once when a request fails with TOKEN_EXPIRED; should get a new
  * access token (POST /auth/refresh) and return true if it did. Set by auth.
