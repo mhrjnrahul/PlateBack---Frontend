@@ -59,6 +59,15 @@ async function toApiError(response: Response): Promise<ApiError> {
   } catch {
     // Body was not JSON; fall through to a generic error.
   }
+  // A proxy or load balancer answering for an API that is down or restarting
+  // (the dev server sends 502). Users see this, not "Bad Gateway".
+  if ([502, 503, 504].includes(response.status)) {
+    return new ApiError(
+      response.status,
+      "NETWORK_ERROR",
+      "The server is not responding. Try again in a moment.",
+    );
+  }
   return new ApiError(response.status, "UNKNOWN_ERROR", response.statusText || "Request failed");
 }
 

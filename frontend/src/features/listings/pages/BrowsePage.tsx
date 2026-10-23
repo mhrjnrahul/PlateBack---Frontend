@@ -75,7 +75,9 @@ export function BrowsePage() {
 
   const resultText = data
     ? `${data.total} ${data.total === 1 ? "listing" : "listings"} within ${filters.radiusKm} km of ${locationLabel(filters)}`
-    : "Loading listings";
+    : isError
+      ? "Listings unavailable"
+      : "Loading listings";
   const chips = activeFilters(filters);
   const activeFilterCount = chips.filter((c) => c.key !== "q").length;
 

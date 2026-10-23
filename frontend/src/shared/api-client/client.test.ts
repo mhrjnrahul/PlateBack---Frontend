@@ -107,11 +107,20 @@ describe("api client", () => {
 
   it("handles an error response that is not JSON", async () => {
     fetchMock.mockResolvedValue(
-      new Response("Bad gateway", { status: 502, statusText: "Bad Gateway" }),
+      new Response("<html>", { status: 500, statusText: "Server Error" }),
     );
     await expect(api.get("/listings")).rejects.toMatchObject({
-      status: 502,
+      status: 500,
       code: "UNKNOWN_ERROR",
+    });
+  });
+
+  it("explains a proxy error when the API is down", async () => {
+    fetchMock.mockResolvedValue(new Response("", { status: 502, statusText: "Bad Gateway" }));
+    await expect(api.get("/listings")).rejects.toMatchObject({
+      status: 502,
+      code: "NETWORK_ERROR",
+      message: "The server is not responding. Try again in a moment.",
     });
   });
 
