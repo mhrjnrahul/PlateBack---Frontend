@@ -1,6 +1,6 @@
 # PlateBack: frontend
 
-PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and lets people nearby reserve it and collect it during a short pickup window with a pickup code. This repository is the React frontend (Week 2 of the YuvaIntern programme). It runs against a mock API in the browser until the ASP.NET Core backend is ready.
+PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and lets people nearby reserve it and collect it during a short pickup window with a pickup code. This folder is the React frontend, built in Week 2 of the YuvaIntern programme and connected in Week 4 to the [ASP.NET Core API](https://github.com/mhrjnrahul/Plateback-Backend). How to run both together, and what changed in Week 4, is in the [repository README](../README.md) and the [integration notes](../docs/integration.md).
 
 ![Browse page](docs/screenshots/browse.jpg)
 
@@ -29,7 +29,7 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 | At least three interconnected views (landing, dashboard, detail) | 12 pages with role-based navigation, including landing, browse (customer dashboard), business dashboard and listing detail ([What you can do](#what-you-can-do))       |
 | Responsive layout from wireframes                                | Built from the seven wireframes in the Week 1 design document; mobile first from 360 px ([Responsive design](#responsive-design))                                      |
 | Interactive UI components                                        | Search as you type, filters, reserving with live stock, countdowns, pickup-code check, photo upload, dialogs and sheets                                                |
-| Usability tested by simulating user interactions                 | 119 tests, most of them full-app tests that click and type like a user ([Testing](#testing))                                                                           |
+| Usability tested by simulating user interactions                 | 123 tests, most of them full-app tests that click and type like a user, plus end-to-end checks against the real API ([Testing](#testing))                              |
 | Modular, documented code following current best practices        | Feature folders, typed API layer, lint, format and type checks ([Project structure](#project-structure), [Design patterns](#design-patterns))                          |
 | Accessibility                                                    | WCAG 2.1 AA target; Lighthouse accessibility 100 and no axe violations ([Accessibility](#accessibility))                                                               |
 | README: process, patterns, libraries, how to run                 | [Development process](#development-process), [Design patterns](#design-patterns), [Tech stack](#tech-stack), [Run it locally](#run-it-locally)                         |
@@ -46,13 +46,15 @@ npm ci            # install the exact versions from package-lock.json
 npm run dev       # start the dev server, then open the URL it prints
 ```
 
-No backend or setup is needed: the mock API starts automatically. To change settings, copy `.env.example` to `.env`.
+The app talks to the API on `http://localhost:5080`, which the dev server proxies (`/api`, `/uploads` and the SignalR hub `/hubs`). Start the API first; the [repository README](../README.md#run-it-locally) has the steps for both.
+
+To work on the UI without the backend, copy `.env.example` to `.env` and set `VITE_USE_MOCKS=true`: the Week 2 mock API then answers in the browser.
 
 ### Demo accounts
 
 The seeded businesses are in Kathmandu, Lalitpur and Bhaktapur, so choose one of those areas to see listings.
 
-Every account uses the password **`password123`**. On the login page, open **Try a demo account** and choose **Fill in**.
+Every account uses the password **`password123`**. With the mock API, the login page also has **Try a demo account** to fill them in.
 
 | Role           | Email                       | Try                                                                 |
 | -------------- | --------------------------- | ------------------------------------------------------------------- |
@@ -60,29 +62,31 @@ Every account uses the password **`password123`**. On the login page, open **Try
 | Business owner | arjun@sunrisebakery.example | Dashboard, verify a pickup code (try `K7M2-9QXA`), create a listing |
 | Admin          | admin@plateback.example     | Verify, reject or suspend businesses                                |
 
-Demo changes are saved in your browser. **Demo tools** in the footer has **Reset demo data**, which starts again from the original data.
+With the real API, demo data lives in PostgreSQL; `dotnet run --project src/PlateBack.Api -- seed` in the backend resets it. With the mock API, changes are saved in your browser and **Demo tools** in the footer has **Reset demo data**.
 
 ### Scripts
 
-| Command             | What it does                                 |
-| ------------------- | -------------------------------------------- |
-| `npm run dev`       | Dev server with hot reload                   |
-| `npm run build`     | Type check and production build into `dist/` |
-| `npm run preview`   | Serve the production build                   |
-| `npm test`          | Tests in watch mode                          |
-| `npm run test:run`  | Tests once                                   |
-| `npm run coverage`  | Tests with a coverage report                 |
-| `npm run lint`      | ESLint (including accessibility rules)       |
-| `npm run typecheck` | TypeScript only                              |
-| `npm run format`    | Format all files with Prettier               |
+| Command             | What it does                                                               |
+| ------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`       | Dev server with hot reload                                                 |
+| `npm run build`     | Type check and production build into `dist/`                               |
+| `npm run preview`   | Serve the production build                                                 |
+| `npm test`          | Tests in watch mode                                                        |
+| `npm run test:run`  | Tests once                                                                 |
+| `npm run coverage`  | Tests with a coverage report                                               |
+| `npm run e2e`       | End-to-end checks in Chrome against the running frontend, API and database |
+| `npm run lint`      | ESLint (including accessibility rules)                                     |
+| `npm run typecheck` | TypeScript only                                                            |
+| `npm run format`    | Format all files with Prettier                                             |
 
 ### Environment variables
 
-| Variable               | Default   | Purpose                                                      |
-| ---------------------- | --------- | ------------------------------------------------------------ |
-| `VITE_API_BASE_URL`    | `/api/v1` | Where API requests go                                        |
-| `VITE_USE_MOCKS`       | on        | Set to `false` to use a real backend instead of the mock API |
-| `VITE_CURRENCY_SYMBOL` | `Rs`      | Symbol shown before prices                                   |
+| Variable               | Default      | Purpose                                                                  |
+| ---------------------- | ------------ | ------------------------------------------------------------------------ |
+| `VITE_API_BASE_URL`    | `/api/v1`    | Where API requests go                                                    |
+| `VITE_USE_MOCKS`       | off          | Set to `true` to use the in-browser mock API instead of the real backend |
+| `VITE_LIVE_HUB_URL`    | `/hubs/live` | The API's SignalR hub for live updates                                   |
+| `VITE_CURRENCY_SYMBOL` | `Rs`         | Symbol shown before prices                                               |
 
 ## What you can do
 
@@ -124,11 +128,13 @@ Versions are pinned exactly in `package.json`.
 | Build         | Vite 8                                       | Fast dev server; production build split into cached chunks                  |
 | Routing       | React Router 8                               | Data router with lazy-loaded pages and route guards                         |
 | Server state  | TanStack Query 5                             | Caching, background refresh, retries, refreshing related data after changes |
+| Live updates  | @microsoft/signalr 10                        | Hears from the API when stock, a queue or notifications change              |
 | Styling       | Tailwind CSS 4                               | Design tokens in CSS (`src/styles/index.css`), no config file               |
 | Components    | shadcn/ui on Radix                           | Accessible dialogs, menus, tabs and sheets, restyled to our tokens          |
 | Forms         | React Hook Form + Zod 4                      | Form state, and validation rules that mirror the server's                   |
-| Mock API      | MSW 3                                        | Intercepts `fetch` in the browser and in tests                              |
+| Mock API      | MSW 3                                        | Intercepts `fetch` in tests, and in the browser when `VITE_USE_MOCKS=true`  |
 | Tests         | Vitest 5, Testing Library, user-event        | Component and full-app tests in jsdom                                       |
+| End to end    | playwright-core                              | Drives the system's Chrome against the running app (`npm run e2e`)          |
 | Quality       | ESLint 9 (+ jsx-a11y, React Hooks), Prettier | Linting, including accessibility, and consistent formatting                 |
 | Icons, toasts | lucide-react, sonner                         |                                                                             |
 | Fonts         | Inter, Fraunces (Fontsource)                 | Self-hosted; Fraunces only for page titles and the landing headline         |
@@ -143,7 +149,7 @@ The code is grouped by feature rather than by file type (design document section
 src/
   app/                    application shell
     layout/               header, navigation (desktop, mobile drawer, tab bar), footer, layouts
-    providers/            React Query, auth and toasts
+    providers/            React Query, auth, live updates (SignalR) and toasts
     router/               route table, route guard, 404 / 403 / error pages
   features/               one folder per feature
     auth/                 login, register, session (access token in memory)
@@ -154,12 +160,14 @@ src/
     admin/                organization review
       (each has) api/ components/ pages/ schemas/
   shared/
-    api-client/           the only code that talks to the network
+    api-client/           the only code that talks to the REST API
+    live/                 whether the SignalR connection is up; polling intervals
     mocks/                mock API: seed data, in-memory database, handlers
     ui/                   shared components (button, dialog, field, alert...)
     lib/, hooks/, types/  helpers, hooks, API types
   styles/index.css        design tokens and base styles
   test/                   test setup and the renderApp() helper
+e2e/flows.mjs             end-to-end checks against the real API
 ```
 
 ## Design patterns
@@ -167,6 +175,7 @@ src/
 - **Feature folders.** Each feature owns its pages, components, API hooks and form schemas, and features talk through their public hooks.
 - **One API client (adapter).** `shared/api-client/client.ts` wraps `fetch`: base URL, JSON, the bearer token, and turning error responses into a typed `ApiError`. It also refreshes an expired token once and retries. Pages never call `fetch` directly, so switching from the mock to the real backend is a configuration change.
 - **Query option factories.** Every feature exposes `queryOptions` factories with query keys defined in one place, for example `listingsQuery(params)`. After a change, mutations refresh exactly the related data; reserving updates the stock, your reservations and the notification count.
+- **Pushes say what changed, queries fetch it.** `LiveUpdates` (in `app/providers/`) keeps one SignalR connection. A message such as `ListingsChanged` only invalidates the matching query keys, so the data still arrives through the same typed client, and polling takes over if the connection drops.
 - **The server decides.** Stock, limits and permissions are checked by the API. The UI shows the API's answer, for example a 409 "sold out", and refreshes, instead of trusting its own copy.
 - **State in the URL.** Browse filters, pagination and tabs live in the URL, so they can be bookmarked or shared and the back button works.
 - **Route guards.** `RequireAuth` protects routes by rule (signed in, business member, admin), following the design document's authorization matrix. The API enforces the same rules.
@@ -193,18 +202,18 @@ A business can add an optional photo when creating a listing (JPEG, PNG or WebP,
 1. `POST /uploads/images` (multipart, field `file`) returns `201 { "url": "..." }`, or `400 VALIDATION_ERROR` with a `file` field error.
 2. `POST /organizations/{orgId}/listings` sends that URL as the optional `imageUrl`.
 
-This endpoint is not in the design document yet; the real API needs it (storing the file and returning a public URL). The mock returns a `data:` URL, so the photo is kept with the rest of the demo data in localStorage. That storage holds about 5 MB, enough for roughly ten photos; after that, new changes still work but are not saved across a reload.
+The real API stores the file and returns a site-relative path such as `/uploads/3f2a….jpg`, which the dev server proxies. The mock API returns a `data:` URL instead and keeps the photo in localStorage, which holds about ten.
 
 ## Mock API
 
-There is no backend yet, so MSW intercepts requests to `/api/v1/*` and answers like the real API described in design document section 6:
+Before the backend existed (Week 2), MSW intercepted requests to `/api/v1/*` and answered like the API described in design document section 6. It is now used by the tests, and in the browser only with `VITE_USE_MOCKS=true`:
 
 - **Same contract:** the same endpoints, JSON shapes and error format (RFC 9457 ProblemDetails with codes such as `SOLD_OUT` and `LIMIT_REACHED`), so the frontend is built against the real contract.
 - **Business rules:** stock that never goes negative, 2 portions per listing, 3 active reservations (1 below 60 reliability), late-cancel and no-show penalties, pickup codes that only work for their own business, verification before publishing.
 - **Expiry and realism:** listings expire and no-shows are recorded when a pickup window passes. Requests are delayed 400 ms so loading states are visible.
 - **Seed data:** businesses around Kathmandu, Lalitpur and Bhaktapur, with pickup windows relative to the current time so the data never goes stale.
 
-The code is in `src/shared/mocks/`. It is loaded only when mocks are on, so it is not part of the bundle when `VITE_USE_MOCKS=false`. Week 3 builds the real API; Week 4 switches the flag off.
+The code is in `src/shared/mocks/`. It is loaded only when mocks are on, so it is not part of the bundle otherwise.
 
 ## Accessibility
 
@@ -234,12 +243,15 @@ The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px)
 ## Testing
 
 ```bash
-npm run test:run   # 119 tests in 23 files
+npm run test:run   # 123 tests in 24 files
+npm run e2e        # 14 checks against the running app (start the API and dev server first)
 ```
 
 - **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing with a photo, browse filter chips, the dashboard chart by keyboard, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
 - **Mock API tests** check the business rules, for example that the last portion can only be reserved once (goal G1).
-- **Unit tests** cover the API client, money and date formatting, browse filter URL handling and form schemas.
+- **Unit tests** cover the API client (including a proxy 502 when the API is down), money and date formatting, browse filter URL handling and form schemas.
+- **Live updates** (`LiveUpdates.test.tsx`) with a stand-in SignalR connection: joining the business's group, refetching the right queries for each message, and falling back to polling when the hub cannot be reached.
+- **End to end** (`e2e/flows.mjs`): a real Chrome against the real frontend, API and database. It reserves as a customer while checking that another browser's stock updates live, checks codes at the counter, publishes a listing with a photo, cancels, verifies a business as admin, and fails on any 5xx or page crash. Details in the [integration notes](../docs/integration.md#how-the-integration-was-validated).
 
 Requests to anything that is not mocked fail the test, and the mock data resets after every test.
 
@@ -256,15 +268,15 @@ The frontend took about 30–35 hours of work, within the time set for the Week 
    - accessible names missing spaces
 4. **UI polish pass.** Once every page worked, a second pass made the screens calmer and more consistent: prices in rupees through one `Price` component, shared `PageHeader` and `Select` components, one type scale and two radii, category illustrations instead of empty image boxes, a sticky reserve bar on phones, pickup codes first on My reservations, and a standalone pickup page for the business's phone. It was checked again at 360, 768 and 1280 px with axe and Lighthouse.
 5. **Real data only.** Figures such as "meals rescued" are counted from the demo data rather than padded with made-up totals.
-6. **Listing photos.** Businesses can attach a photo to a new listing. This needed an upload endpoint that the design document did not have yet, so it was added to the mock API and documented below for the Week 3 backend.
+6. **Listing photos.** Businesses can attach a photo to a new listing. This needed an upload endpoint that the design document did not have yet, so it was added to the mock API and documented for the Week 3 backend.
+7. **Week 4: the real API.** The mock was switched off, every flow was run against the backend in Chrome, and the problems found were fixed on whichever side caused them; SignalR replaced 15-second polling. See the [integration notes](../docs/integration.md).
 
 ## Known limitations
 
 These are planned for later weeks:
 
-- **Backend:** data comes from the mock API until Week 4. Live updates use 15-second polling; SignalR comes with the real backend (design decision D12).
 - **Time zones:** times are entered and shown in the browser's time zone. The backend stores UTC and each organization's time zone.
 - **Not built in Week 2 (lower-priority features):** recurring listings (F09), email notifications (F20), editing a listing, team management (F06), admin users, and the audit log screen.
 - **Location:** no embedded map or address lookup (design document 1.7). Locations come from preset areas or the browser's geolocation, which runs only when you press **Use my current location**. Browsers allow it only on `https://` or `localhost` (not on a LAN address such as `http://192.168.x.x`), and the demo listings are all in the Kathmandu valley.
-- **Photos:** the seeded listings use category illustrations. Uploaded photos are kept in browser storage by the mock API, which fits about ten.
-- **Performance:** with the mock API on, the app waits for the mock service worker before its first render. Performance tuning is part of Week 5.
+- **Photos:** the seeded listings use category illustrations. Uploaded photos are stored on the API's disk, which suits one server; cloud storage is planned for deployment.
+- **Performance:** measured in the [integration notes](../docs/integration.md#performance); deeper tuning is part of Week 5.
