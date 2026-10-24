@@ -14,7 +14,7 @@ The app is two projects that run together:
 
 ## Week 4 submission
 
-One ZIP with both projects and this README is attached to the [week4 release](https://github.com/mhrjnrahul/PlateBack---Frontend/releases/tag/week4), together with the demo video (`plateback-demo.mp4`).
+One ZIP with both projects and this README is attached to the [week4 release](https://github.com/mhrjnrahul/PlateBack---Frontend/releases/tag/week4), together with the demo video (`plateback-demo.webm`, also inside the ZIP).
 
 | The Week 4 brief asks for                                       | Where it is                                                                                                                                                                                      |
 | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -25,7 +25,7 @@ One ZIP with both projects and this README is attached to the [week4 release](ht
 | Seamless data flow, validated as an end user and as a developer | 14 end-to-end checks, 163 backend tests and 123 frontend tests                                                                                                                                   |
 | Challenges and solutions documented                             | Eight problems with cause, fix and evidence ([challenges](docs/integration.md#challenges-and-solutions))                                                                                         |
 | Instructions to set up and run the whole application locally    | [Run it locally](#run-it-locally) below                                                                                                                                                          |
-| Video demonstration                                             | `plateback-demo.mp4` on the week4 release                                                                                                                                                        |
+| Video demonstration                                             | `plateback-demo.webm`, in the ZIP and on the week4 release                                                                                                                                       |
 | About 30–35 hours                                               | About 30–35 hours                                                                                                                                                                                |
 
 ## Run it locally
