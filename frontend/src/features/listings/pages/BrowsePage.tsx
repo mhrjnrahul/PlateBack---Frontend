@@ -73,11 +73,14 @@ export function BrowsePage() {
     return () => window.clearTimeout(timer);
   }, [query, urlQuery, setSearchParams]);
 
+  // The loading text is as long as the result, so the line does not wrap
+  // differently when the count arrives (it moved the page by 24 px on phones).
+  const area = `within ${filters.radiusKm} km of ${locationLabel(filters)}`;
   const resultText = data
-    ? `${data.total} ${data.total === 1 ? "listing" : "listings"} within ${filters.radiusKm} km of ${locationLabel(filters)}`
+    ? `${data.total} ${data.total === 1 ? "listing" : "listings"} ${area}`
     : isError
       ? "Listings unavailable"
-      : "Loading listings";
+      : `Finding listings ${area}`;
   const chips = activeFilters(filters);
   const activeFilterCount = chips.filter((c) => c.key !== "q").length;
 

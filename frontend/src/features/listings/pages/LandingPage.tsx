@@ -27,7 +27,7 @@ function HeroListings() {
         {isPending
           ? Array.from({ length: 3 }, (_, i) => (
               <li key={i}>
-                <ListingCardSkeleton />
+                <ListingCardSkeleton layout="row" />
               </li>
             ))
           : data.items.map((listing) => (
@@ -43,7 +43,16 @@ function HeroListings() {
 /** One line of real numbers from the API, shown only once loaded (no dashes or zeros while loading). */
 function ImpactLine() {
   const { data } = useQuery(impactQuery());
-  if (!data) return null;
+  // Until the numbers arrive, an invisible line of the same shape holds the
+  // space, so the sections below do not jump down when it appears (Week 5:
+  // this was most of the landing page's layout shift on phones).
+  if (!data) {
+    return (
+      <p aria-hidden="true" className="invisible page-container border-y py-5">
+        000 meals rescued so far, from 000 local businesses. 000 listings are live right now.
+      </p>
+    );
+  }
   const n = (value: number) => (
     <strong className="font-semibold text-foreground tabular-nums">
       {numberFormat.format(value)}

@@ -50,6 +50,8 @@ export default defineConfig({
               test: /node_modules[\\/](msw|@msw|@mswjs|@inquirer|cookie|headers-polyfill|is-node-process|outvariant|rettime|tough-cookie|tldts|tldts-core|until-async|@open-draft|strict-event-emitter)[\\/]/,
               priority: 25,
             },
+            // Loaded on demand once a page has rendered (app/providers/LiveUpdates.tsx).
+            { name: "signalr", test: /node_modules[\\/]@microsoft[\\/]signalr[\\/]/, priority: 25 },
             {
               name: "forms",
               test: /node_modules[\\/](zod|react-hook-form|@hookform)[\\/]/,

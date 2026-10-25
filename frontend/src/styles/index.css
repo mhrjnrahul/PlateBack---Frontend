@@ -2,6 +2,21 @@
 @import "tw-animate-css";
 
 /*
+ * Until Fraunces downloads, headings use Times New Roman (Liberation Serif on
+ * Linux) resized to Fraunces' measurements at weight 600, so they wrap the
+ * same and nothing moves when the real font arrives. Measured in Chrome
+ * (Week 5): Fraunces is 11.4% wider, ascent 98 and descent 26 per 100 px.
+ */
+@font-face {
+  font-family: "Fraunces Fallback";
+  src: local("Times New Roman"), local("Liberation Serif");
+  size-adjust: 111.4%;
+  ascent-override: 88%;
+  descent-override: 23.3%;
+  line-gap-override: 0%;
+}
+
+/*
  * Design tokens (design document, section 3.2).
  *
  * Contrast ratios are measured against white unless noted. Text needs 4.5:1
@@ -120,7 +135,7 @@
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   /* Display face: page titles (h1/h2) and the landing headline only */
-  --font-display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-display: "Fraunces Variable", "Fraunces Fallback", ui-serif, Georgia, serif;
 
   /*
    * Type scale 14 / 16 / 18 / 20 / 24 / 32 / 44 px:

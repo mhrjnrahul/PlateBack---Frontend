@@ -2,7 +2,9 @@ import { screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderApp } from "@/test/render-app";
 
-const resultsHeading = () => screen.findByRole("heading", { level: 2, name: /listings? within/ });
+/** The results heading once the count has arrived (it reads "Finding listings..." while loading). */
+const resultsHeading = () =>
+  screen.findByRole("heading", { level: 2, name: /^\d+ listings? within/ });
 const cardTitles = () =>
   within(screen.getByRole("region", { name: /listings? within/ }))
     .getAllByRole("heading", { level: 3 })

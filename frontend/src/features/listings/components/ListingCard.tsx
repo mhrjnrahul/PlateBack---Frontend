@@ -95,11 +95,22 @@ export function ListingCard({
 }
 
 /** Same footprint as ListingCard (row below sm, card from sm), while results load. */
-export function ListingCardSkeleton() {
+/**
+ * Placeholder with the same shape as the card it stands for: pass the card's
+ * layout, or the page jumps when the real cards arrive (Week 5: a "row" card
+ * shown with this skeleton's tall card shape shrank the landing page by 900 px).
+ */
+export function ListingCardSkeleton({ layout = "responsive" }: { layout?: "responsive" | "row" }) {
+  const card = layout === "responsive";
   return (
-    <div className="flex gap-3 rounded-xl border p-3 sm:flex-col sm:gap-0 sm:p-0">
-      <Skeleton className="size-24 shrink-0 sm:aspect-[4/3] sm:size-auto sm:w-full sm:rounded-none sm:rounded-t-xl" />
-      <div className="flex-1 space-y-2 sm:p-4">
+    <div className={cn("flex gap-3 rounded-xl border p-3", card && "sm:flex-col sm:gap-0 sm:p-0")}>
+      <Skeleton
+        className={cn(
+          "size-24 shrink-0",
+          card && "sm:aspect-[4/3] sm:size-auto sm:w-full sm:rounded-none sm:rounded-t-xl",
+        )}
+      />
+      <div className={cn("flex-1 space-y-2", card && "sm:p-4")}>
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-3 w-1/2" />
         <Skeleton className="h-5 w-1/3" />

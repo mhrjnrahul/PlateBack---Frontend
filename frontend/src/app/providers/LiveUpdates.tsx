@@ -1,9 +1,4 @@
-import {
-  HttpTransportType,
-  HubConnectionBuilder,
-  HubConnectionState,
-  LogLevel,
-} from "@microsoft/signalr";
+import type { HubConnection } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/features/auth/session/auth-context";
@@ -38,75 +33,89 @@ export function LiveUpdates() {
   useEffect(() => {
     if (import.meta.env.VITE_USE_MOCKS === "true" || status === "loading") return;
 
-    const connection = new HubConnectionBuilder()
-      .withUrl(HUB_URL, {
-        accessTokenFactory: () => currentAccessToken() ?? "",
-        // WebSockets first; the others are fallbacks for strict proxies.
-        transport:
-          HttpTransportType.WebSockets |
-          HttpTransportType.ServerSentEvents |
-          HttpTransportType.LongPolling,
-      })
-      .withAutomaticReconnect({
-        nextRetryDelayInMilliseconds: ({ previousRetryCount }) => retryDelay(previousRetryCount),
-      })
-      // Failures are handled below (polling carries on), and leaving a page
-      // mid-connect is normal, so SignalR's own console errors are only noise.
-      .configureLogging(LogLevel.None)
-      .build();
-
-    connection.on("ListingsChanged", () => {
-      void queryClient.invalidateQueries({ queryKey: listingKeys.all });
-    });
-    connection.on("OrganizationChanged", ({ organizationId }: { organizationId: string }) => {
-      void queryClient.invalidateQueries({ queryKey: organizationKeys.detail(organizationId) });
-    });
-    connection.on("NotificationsChanged", () => {
-      // A new notification means a reservation changed too (collected, no-show...).
-      void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
-      void queryClient.invalidateQueries({ queryKey: reservationKeys.all });
-    });
-
-    /** Staff join their businesses' groups; the hub checks membership. */
-    const watchOrganizations = async () => {
-      for (const id of organizationIds.split(",").filter(Boolean)) {
-        // A failed join (an expired token, removed from the business) only
-        // means that business's pages keep polling.
-        await connection.invoke("WatchOrganization", id).catch(() => undefined);
-      }
-    };
-
-    connection.onreconnecting(() => setLiveConnected(false));
-    connection.onreconnected(async () => {
-      setLiveConnected(true);
-      await watchOrganizations();
-      // Pushes sent while disconnected are lost: catch up once.
-      void queryClient.invalidateQueries({ queryKey: listingKeys.all });
-      void queryClient.invalidateQueries({ queryKey: organizationKeys.all });
-      void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
-    });
-    connection.onclose(() => setLiveConnected(false));
-
-    // Automatic reconnect only covers a connection that once worked, so the
-    // first start is retried here (the API may still be starting up).
     let stopped = false;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
     let starting: Promise<void> = Promise.resolve();
-    const start = (attempt: number) => {
-      starting = connection
-        .start()
-        .then(async () => {
-          if (stopped) return;
-          setLiveConnected(true);
-          await watchOrganizations();
+    let connection: HubConnection | undefined;
+
+    // The SignalR client (about 14 kB gzipped) is loaded after the page has
+    // rendered, so it no longer delays first paint (Week 5).
+    void import("@microsoft/signalr").then((signalR) => {
+      if (stopped) return;
+      connection = connect(signalR);
+    });
+
+    function connect(signalR: typeof import("@microsoft/signalr")) {
+      const { HttpTransportType, HubConnectionBuilder, LogLevel } = signalR;
+      const connection = new HubConnectionBuilder()
+        .withUrl(HUB_URL, {
+          accessTokenFactory: () => currentAccessToken() ?? "",
+          // WebSockets first; the others are fallbacks for strict proxies.
+          transport:
+            HttpTransportType.WebSockets |
+            HttpTransportType.ServerSentEvents |
+            HttpTransportType.LongPolling,
         })
-        .catch(() => {
-          setLiveConnected(false);
-          // Polling carries on meanwhile.
-          if (!stopped) retryTimer = setTimeout(() => start(attempt + 1), retryDelay(attempt + 1));
-        });
-    };
-    start(0);
+        .withAutomaticReconnect({
+          nextRetryDelayInMilliseconds: ({ previousRetryCount }) => retryDelay(previousRetryCount),
+        })
+        // Failures are handled below (polling carries on), and leaving a page
+        // mid-connect is normal, so SignalR's own console errors are only noise.
+        .configureLogging(LogLevel.None)
+        .build();
+
+      connection.on("ListingsChanged", () => {
+        void queryClient.invalidateQueries({ queryKey: listingKeys.all });
+      });
+      connection.on("OrganizationChanged", ({ organizationId }: { organizationId: string }) => {
+        void queryClient.invalidateQueries({ queryKey: organizationKeys.detail(organizationId) });
+      });
+      connection.on("NotificationsChanged", () => {
+        // A new notification means a reservation changed too (collected, no-show...).
+        void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+        void queryClient.invalidateQueries({ queryKey: reservationKeys.all });
+      });
+
+      /** Staff join their businesses' groups; the hub checks membership. */
+      const watchOrganizations = async () => {
+        for (const id of organizationIds.split(",").filter(Boolean)) {
+          // A failed join (an expired token, removed from the business) only
+          // means that business's pages keep polling.
+          await connection.invoke("WatchOrganization", id).catch(() => undefined);
+        }
+      };
+
+      connection.onreconnecting(() => setLiveConnected(false));
+      connection.onreconnected(async () => {
+        setLiveConnected(true);
+        await watchOrganizations();
+        // Pushes sent while disconnected are lost: catch up once.
+        void queryClient.invalidateQueries({ queryKey: listingKeys.all });
+        void queryClient.invalidateQueries({ queryKey: organizationKeys.all });
+        void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      });
+      connection.onclose(() => setLiveConnected(false));
+
+      // Automatic reconnect only covers a connection that once worked, so the
+      // first start is retried here (the API may still be starting up).
+      const start = (attempt: number) => {
+        starting = connection
+          .start()
+          .then(async () => {
+            if (stopped) return;
+            setLiveConnected(true);
+            await watchOrganizations();
+          })
+          .catch(() => {
+            setLiveConnected(false);
+            // Polling carries on meanwhile.
+            if (!stopped)
+              retryTimer = setTimeout(() => start(attempt + 1), retryDelay(attempt + 1));
+          });
+      };
+      start(0);
+      return connection;
+    }
 
     return () => {
       stopped = true;
@@ -114,7 +123,7 @@ export function LiveUpdates() {
       setLiveConnected(false);
       // Stopping mid-start rejects start(); wait for it so nothing is left open.
       void starting.finally(() => {
-        if (connection.state !== HubConnectionState.Disconnected) void connection.stop();
+        if (connection && connection.state !== "Disconnected") void connection.stop();
       });
     };
   }, [queryClient, status, userId, organizationIds]);
