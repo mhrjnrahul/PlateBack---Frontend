@@ -29,7 +29,7 @@ PlateBack lets bakeries, cafes and restaurants list end-of-day surplus food, and
 | At least three interconnected views (landing, dashboard, detail) | 12 pages with role-based navigation, including landing, browse (customer dashboard), business dashboard and listing detail ([What you can do](#what-you-can-do))       |
 | Responsive layout from wireframes                                | Built from the seven wireframes in the Week 1 design document; mobile first from 360 px ([Responsive design](#responsive-design))                                      |
 | Interactive UI components                                        | Search as you type, filters, reserving with live stock, countdowns, pickup-code check, photo upload, dialogs and sheets                                                |
-| Usability tested by simulating user interactions                 | 123 tests, most of them full-app tests that click and type like a user, plus end-to-end checks against the real API ([Testing](#testing))                              |
+| Usability tested by simulating user interactions                 | 149 tests, most of them full-app tests that click and type like a user, plus end-to-end checks against the real API ([Testing](#testing))                              |
 | Modular, documented code following current best practices        | Feature folders, typed API layer, lint, format and type checks ([Project structure](#project-structure), [Design patterns](#design-patterns))                          |
 | Accessibility                                                    | WCAG 2.1 AA target; Lighthouse accessibility 100 and no axe violations ([Accessibility](#accessibility))                                                               |
 | README: process, patterns, libraries, how to run                 | [Development process](#development-process), [Design patterns](#design-patterns), [Tech stack](#tech-stack), [Run it locally](#run-it-locally)                         |
@@ -243,13 +243,17 @@ The layout is mobile first, using Tailwind's breakpoints (768, 1024 and 1280 px)
 ## Testing
 
 ```bash
-npm run test:run   # 123 tests in 24 files
+npm run test:run   # 149 tests in 29 files
+npm run coverage   # the same with a coverage report (91% of lines, Week 5)
 npm run e2e        # 14 checks against the running app (start the API and dev server first)
 ```
 
+The strategy, coverage, every test with its purpose, and the Week 5 performance work are in [docs/testing.md](../docs/testing.md) and [docs/test-catalogue.md](../docs/test-catalogue.md). Performance scripts are in `perf/`: `lighthouse.mjs` (median of several Lighthouse runs) and `vitals.mjs` (real page loads under phone throttling), with results in `perf/results/`.
+
 - **Full-app tests** (`renderApp()` in `src/test/`) render the real app (providers, router, auth) against the mock API, and act like a user would: clicking labelled buttons and typing into labelled fields. They cover reserving (including the sold-out conflict), cancelling, verifying pickup codes, publishing a listing with a photo, browse filter chips, the dashboard chart by keyboard, admin review, login with redirect, route guards, navigation per role, the mobile menu and the skip link.
 - **Mock API tests** check the business rules, for example that the last portion can only be reserved once (goal G1).
-- **Unit tests** cover the API client (including a proxy 502 when the API is down), money and date formatting, browse filter URL handling and form schemas.
+- **Unit tests** cover the API client (including a proxy 502 when the API is down), money and date formatting, browse filter URL handling, form schemas, pagination, photo checks and areas.
+- **Week 5 additions** for the features the coverage report showed untested: registering a business (validation, browser location, the pending result) and the landing page's location search (including refused and missing location).
 - **Live updates** (`LiveUpdates.test.tsx`) with a stand-in SignalR connection: joining the business's group, refetching the right queries for each message, and falling back to polling when the hub cannot be reached.
 - **End to end** (`e2e/flows.mjs`): a real Chrome against the real frontend, API and database. It reserves as a customer while checking that another browser's stock updates live, checks codes at the counter, publishes a listing with a photo, cancels, verifies a business as admin, and fails on any 5xx or page crash. Details in the [integration notes](../docs/integration.md#how-the-integration-was-validated).
 
@@ -279,4 +283,4 @@ These are planned for later weeks:
 - **Not built in Week 2 (lower-priority features):** recurring listings (F09), email notifications (F20), editing a listing, team management (F06), admin users, and the audit log screen.
 - **Location:** no embedded map or address lookup (design document 1.7). Locations come from preset areas or the browser's geolocation, which runs only when you press **Use my current location**. Browsers allow it only on `https://` or `localhost` (not on a LAN address such as `http://192.168.x.x`), and the demo listings are all in the Kathmandu valley.
 - **Photos:** the seeded listings use category illustrations. Uploaded photos are stored on the API's disk, which suits one server; cloud storage is planned for deployment.
-- **Performance:** measured in the [integration notes](../docs/integration.md#performance); deeper tuning is part of Week 5.
+- **Performance:** first paint on a slow phone is about 1.7 s in real loads, mostly the cost of downloading the app's JavaScript; pre-rendering public pages is planned with deployment. See [testing.md](../docs/testing.md#what-was-measured-and-left-alone).

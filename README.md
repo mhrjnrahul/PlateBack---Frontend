@@ -11,6 +11,25 @@ The app is two projects that run together:
 | Frontend    | [`frontend/`](frontend/) in this repository                                                          | React 19 + TypeScript (Week 2). [README](frontend/README.md)                                                                    |
 | Backend     | [Plateback-Backend](https://github.com/mhrjnrahul/Plateback-Backend) (in the Week 4 ZIP: `backend/`) | ASP.NET Core 10 REST API with PostgreSQL and SignalR (Week 3). [README](https://github.com/mhrjnrahul/Plateback-Backend#readme) |
 | Integration | [`docs/integration.md`](docs/integration.md)                                                         | How they connect, the problems found when connecting them and how each was solved (Week 4)                                      |
+| Testing     | [`docs/testing.md`](docs/testing.md), [`docs/test-catalogue.md`](docs/test-catalogue.md)             | Test strategy, how to run every suite, coverage, profiling and the optimisations made (Week 5)                                  |
+| Debugging   | [`docs/debugging.md`](docs/debugging.md)                                                             | The debugging process, a report for each problem found, and lessons learned (Week 5)                                            |
+
+## Week 5 submission
+
+One ZIP with both projects, this README, the test reports and the error logs is attached to the [week5 release](https://github.com/mhrjnrahul/PlateBack---Frontend/releases/tag/week5).
+
+| The Week 5 brief asks for                                  | Where it is                                                                                                                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test cases for the frontend and the backend                | 181 backend tests (55 domain, 24 application, 102 integration against PostgreSQL), 149 frontend tests (77 unit and component, 72 full-app), 14 end-to-end checks ([strategy](docs/testing.md#strategy)) |
+| Unit tests with suitable frameworks                        | xUnit v3 and Shouldly (backend), Vitest and Testing Library (frontend)                                                                                                                                  |
+| Integration tests of components working together           | The API over real HTTP and PostgreSQL; the whole React app against the mock API; Chrome against the running frontend, API and database                                                                  |
+| Debugging tools and techniques                             | Runtime counters, CPU traces, `EXPLAIN`, index statistics, a layout-shift observer, log analysis ([debugging.md](docs/debugging.md))                                                                    |
+| Profiling and optimising bottlenecks                       | Listing search 2.7x to 6.3x faster, the dashboard listings table 9x, memory per search 21.6 MB to 0.37 MB, layout shift removed ([performance](docs/testing.md#performance))                            |
+| Rationale for each test case                               | [Test catalogue](docs/test-catalogue.md): every test, with why its file exists                                                                                                                          |
+| Test scripts, error logs, debugging reports, configuration | `scripts/run-all-tests.sh`, CI workflows in `.github/`, load and page-load scripts in `perf/`; `test-artifacts/` in the ZIP has the reports and logs                                                    |
+| README: strategies, how to run, optimisations              | [docs/testing.md](docs/testing.md) and [Checks](#checks) below                                                                                                                                          |
+| Debugging process and lessons learned (optional)           | [docs/debugging.md](docs/debugging.md)                                                                                                                                                                  |
+| About 30–35 hours                                          | About 30–35 hours                                                                                                                                                                                       |
 
 ## Week 4 submission
 
@@ -106,12 +125,15 @@ To see live updates, log in as Maya in one browser and open the same listing, or
 
 ### Checks
 
-| Where    | Command                             | What it runs                                                                                    |
-| -------- | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
-| backend  | `dotnet test`                       | 163 tests, 87 of them against the real API and PostgreSQL                                       |
-| frontend | `npm run test:run`                  | 123 tests against the mock API                                                                  |
-| frontend | `npm run e2e`                       | 14 end-to-end checks in Chrome against the running app (start both first, with fresh demo data) |
-| frontend | `npm run lint`, `npm run typecheck` | ESLint with accessibility rules, TypeScript                                                     |
+| Where    | Command                             | What it runs                                                                                           |
+| -------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| root     | `scripts/run-all-tests.sh`          | Every suite below, with TRX, JUnit and coverage reports in `test-artifacts/` (`E2E=1` adds end to end) |
+| backend  | `dotnet test`                       | 181 tests, 102 of them against the real API and PostgreSQL                                             |
+| frontend | `npm run test:run`                  | 149 tests against the mock API                                                                         |
+| frontend | `npm run e2e`                       | 14 end-to-end checks in Chrome against the running app (start both first, with fresh demo data)        |
+| frontend | `npm run lint`, `npm run typecheck` | ESLint with accessibility rules, TypeScript                                                            |
+
+How the suites are organised, coverage and the performance work are in [docs/testing.md](docs/testing.md). Both repositories also run their suites on GitHub Actions on every push.
 
 ## How it fits together
 
