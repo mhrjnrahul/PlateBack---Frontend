@@ -1,0 +1,47 @@
+# Lint, type check, formatting, unit and full-app tests with coverage, and
+# the production build. The end-to-end checks (npm run e2e) need the API and
+# a database running and are run locally (see docs/testing.md).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run format:check
+
+      - name: Tests with coverage
+        run: >-
+          npx vitest run --coverage
+          --coverage.reporter=text-summary --coverage.reporter=html
+          --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml
+
+      - name: Production build
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            frontend/test-results/
+            frontend/coverage/
