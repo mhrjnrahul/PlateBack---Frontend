@@ -35,6 +35,18 @@ if (!chrome) {
   process.exit(1);
 }
 
+// Fail fast if something else answers on that port (Week 5: another project's
+// dev server was on 5173, and every step timed out instead).
+const probe = await fetch(`${BASE}/api/v1/stats/impact`).catch(() => null);
+const isPlateBack = probe?.ok && (probe.headers.get("content-type") ?? "").includes("json");
+if (!isPlateBack) {
+  console.error(
+    `No PlateBack API behind ${BASE}/api/v1 (got ${probe ? `${probe.status} ${probe.headers.get("content-type") ?? ""}`.trim() : "no answer"}).\n` +
+      "Start the API and the dev server, or set E2E_BASE_URL to where the dev server runs.",
+  );
+  process.exit(1);
+}
+
 const browser = await chromium.launch({ executablePath: chrome, headless: true });
 const failures = [];
 const pass = (step) => console.log(`  ok    ${step}`);
