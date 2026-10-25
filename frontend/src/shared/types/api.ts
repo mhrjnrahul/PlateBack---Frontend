@@ -20,11 +20,15 @@ export type Page<T> = {
   total: number;
 };
 
-/** Error codes the API returns in ProblemDetails.code (section 6.4). */
+/**
+ * Error codes the API returns in ProblemDetails.code (section 6.4, plus the
+ * three the Week 3 API added: FORBIDDEN, INVALID_STATE and CONFLICT).
+ */
 export type ErrorCode =
   | "VALIDATION_ERROR"
   | "UNAUTHENTICATED"
   | "TOKEN_EXPIRED"
+  | "FORBIDDEN"
   | "NOT_ORG_MEMBER"
   | "ORG_NOT_VERIFIED"
   | "ACCOUNT_SUSPENDED"
@@ -34,6 +38,8 @@ export type ErrorCode =
   | "WINDOW_CLOSED"
   | "ALREADY_COLLECTED"
   | "CODE_ALREADY_USED"
+  | "INVALID_STATE"
+  | "CONFLICT"
   | "RATE_LIMITED"
   | "INTERNAL_ERROR";
 

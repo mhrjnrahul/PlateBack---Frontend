@@ -14,12 +14,25 @@ URL.createObjectURL ??= () => "blob:test-preview";
 URL.revokeObjectURL ??= () => undefined;
 // Uploads: Node's fetch only accepts its own FormData and File, not jsdom's
 // (a browser has just one of each). Node's FormData is reached through Response.
-globalThis.File = NodeFile;
-globalThis.FormData = (
+// React 19 also calls `new FormData(form)` when a form submit navigates, which
+// Node's version cannot do, so a form is read with jsdom's and copied over
+// (Week 5: this threw an unhandled error after the landing page's search).
+const JsdomFormData = globalThis.FormData;
+const NodeFormData = (
   await new Response("", {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   }).formData()
 ).constructor as typeof FormData;
+class TestFormData extends NodeFormData {
+  constructor(form?: HTMLFormElement, submitter?: HTMLElement | null) {
+    super();
+    if (form) {
+      for (const [name, value] of new JsdomFormData(form, submitter)) this.append(name, value);
+    }
+  }
+}
+globalThis.File = NodeFile;
+globalThis.FormData = TestFormData;
 
 // Every test talks to the same mock API as the browser. Requests to anything
 // that is not mocked fail loudly instead of reaching the network.

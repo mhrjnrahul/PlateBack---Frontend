@@ -19,6 +19,17 @@ describe("BrowsePage", () => {
     expect(cardTitles()).toContain("Mixed pastry box");
   });
 
+  it("names the search area while still counting, so the line does not change shape", async () => {
+    // Week 5 layout-shift fix: "Loading listings" became a two-line count on phones.
+    await renderApp("/browse?area=patan&radius=10");
+    expect(
+      screen.getByRole("heading", { level: 2, name: /listings? within 10 km of Patan, Lalitpur/ }),
+    ).toHaveTextContent(/^(Finding|\d+) listings? within 10 km of Patan, Lalitpur$/);
+    expect(await resultsHeading()).toHaveTextContent(
+      /^\d+ listings? within 10 km of Patan, Lalitpur$/,
+    );
+  });
+
   it("filters by category and keeps the filter in the URL", async () => {
     const { user, router } = await renderApp("/browse?radius=25");
     await resultsHeading();
