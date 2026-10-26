@@ -33,7 +33,8 @@ jobs:
         run: >-
           npx vitest run --coverage
           --coverage.reporter=text-summary --coverage.reporter=html
-          --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml
+          --reporter=default --reporter=github-actions
+          --reporter=junit --outputFile.junit=test-results/junit.xml
 
       - name: Production build
         run: npm run build
